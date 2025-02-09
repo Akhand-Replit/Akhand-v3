@@ -75,18 +75,26 @@ def search_page():
                             </div>
                             """, unsafe_allow_html=True)
 
-                            # Add Friend/Enemy buttons
+                            # Add Friend/Enemy buttons with improved error handling
                             col1, col2 = st.columns(2)
                             with col1:
                                 if st.button("🤝 বন্ধু হিসেবে যোগ করুন", key=f"friend_{result['id']}", type="primary"):
-                                    db.add_relationship(result['id'], 'friend')
-                                    st.success("বন্ধু হিসেবে যোগ করা হয়েছে!")
-                                    st.rerun()
+                                    try:
+                                        db.add_relationship(result['id'], 'friend')
+                                        st.success("✅ বন্ধু হিসেবে যোগ করা হয়েছে!")
+                                        st.rerun()
+                                    except Exception as e:
+                                        logger.error(f"Error adding friend: {str(e)}")
+                                        st.error("❌ বন্ধু হিসেবে যোগ করার সময় সমস্যা হয়েছে")
                             with col2:
                                 if st.button("⚔️ শত্রু হিসেবে যোগ করুন", key=f"enemy_{result['id']}", type="secondary"):
-                                    db.add_relationship(result['id'], 'enemy')
-                                    st.success("শত্রু হিসেবে যোগ করা হয়েছে!")
-                                    st.rerun()
+                                    try:
+                                        db.add_relationship(result['id'], 'enemy')
+                                        st.success("✅ শত্রু হিসেবে যোগ করা হয়েছে!")
+                                        st.rerun()
+                                    except Exception as e:
+                                        logger.error(f"Error adding enemy: {str(e)}")
+                                        st.error("❌ শত্রু হিসেবে যোগ করার সময় সমস্যা হয়েছে")
                 else:
                     st.info("কোন ফলাফল পাওয়া যায়নি")
 

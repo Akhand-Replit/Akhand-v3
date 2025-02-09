@@ -232,14 +232,28 @@ class Database:
 
     def add_relationship(self, record_id: int, relationship_type: str):
         """Add or update a relationship (friend/enemy) for a record"""
-        with self.conn.cursor() as cur:
-            cur.execute("""
-                INSERT INTO relationships (record_id, relationship_type)
-                VALUES (%s, %s)
-                ON CONFLICT (record_id)
-                DO UPDATE SET relationship_type = EXCLUDED.relationship_type
-            """, (record_id, relationship_type))
-            self.conn.commit()
+        try:
+            # Convert record_id to native Python int
+            record_id = int(record_id)  # Ensures native Python int type
+
+            with self.conn.cursor() as cur:
+                # First verify the record exists
+                cur.execute("SELECT id FROM records WHERE id = %s", (record_id,))
+                if not cur.fetchone():
+                    raise ValueError(f"Record with ID {record_id} not found")
+
+                cur.execute("""
+                    INSERT INTO relationships (record_id, relationship_type)
+                    VALUES (%s, %s)
+                    ON CONFLICT (record_id)
+                    DO UPDATE SET relationship_type = EXCLUDED.relationship_type
+                """, (record_id, relationship_type))
+                self.conn.commit()
+                logger.info(f"Successfully added/updated relationship for record {record_id}")
+        except Exception as e:
+            logger.error(f"Error adding relationship: {str(e)}")
+            self.conn.rollback()
+            raise
 
     def remove_relationship(self, record_id: int):
         """Remove a relationship for a record"""
