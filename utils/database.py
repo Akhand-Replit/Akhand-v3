@@ -7,12 +7,14 @@ logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
+        # Set client encoding to UTF8 explicitly
         self.conn = psycopg2.connect(
             dbname=os.getenv('PGDATABASE'),
             user=os.getenv('PGUSER'),
             password=os.getenv('PGPASSWORD'),
             host=os.getenv('PGHOST'),
-            port=os.getenv('PGPORT')
+            port=os.getenv('PGPORT'),
+            options="-c client_encoding=utf8"
         )
         self.create_tables()
 
@@ -27,7 +29,7 @@ class Database:
                 )
             """)
 
-            # Create records table
+            # Create records table with explicit encoding
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS records (
                     id SERIAL PRIMARY KEY,
@@ -258,6 +260,17 @@ class Database:
                 if not record:
                     raise ValueError(f"Record with ID {record_id} not found")
 
+                # Ensure all text data is properly encoded
+                record_data = {
+                    'ক্রমিক_নং': str(record['ক্রমিক_নং']).encode('utf-8').decode('utf-8'),
+                    'নাম': str(record['নাম']).encode('utf-8').decode('utf-8'),
+                    'ভোটার_নং': str(record['ভোটার_নং']).encode('utf-8').decode('utf-8'),
+                    'পিতার_নাম': str(record['পিতার_নাম']).encode('utf-8').decode('utf-8'),
+                    'মাতার_নাম': str(record['মাতার_নাম']).encode('utf-8').decode('utf-8'),
+                    'পেশা': str(record['পেশা']).encode('utf-8').decode('utf-8'),
+                    'ঠিকানা': str(record['ঠিকানা']).encode('utf-8').decode('utf-8'),
+                }
+
                 # Insert or update relationship with copied data
                 cur.execute("""
                     INSERT INTO relationships (
@@ -281,11 +294,17 @@ class Database:
                         relationship_type = EXCLUDED.relationship_type,
                         created_at = CURRENT_TIMESTAMP
                 """, (
-                    record_id, record['ক্রমিক_নং'], record['নাম'],
-                    record['ভোটার_নং'], record['পিতার_নাম'],
-                    record['মাতার_নাম'], record['পেশা'],
-                    record['ঠিকানা'], record['batch_name'],
-                    record['file_name'], relationship_type
+                    record_id,
+                    record_data['ক্রমিক_নং'],
+                    record_data['নাম'],
+                    record_data['ভোটার_নং'],
+                    record_data['পিতার_নাম'],
+                    record_data['মাতার_নাম'],
+                    record_data['পেশা'],
+                    record_data['ঠিকানা'],
+                    record['batch_name'],
+                    record['file_name'],
+                    relationship_type
                 ))
                 self.conn.commit()
                 logger.info(f"Successfully added/updated relationship for record {record_id}")
