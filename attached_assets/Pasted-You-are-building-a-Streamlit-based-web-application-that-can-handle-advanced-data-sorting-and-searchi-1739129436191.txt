@@ -1,0 +1,43 @@
+You are building a Streamlit-based web application that can handle advanced data sorting and searching. The app will allow users to upload multiple TXT files, store them in a PostgreSQL database, and retrieve specific data using advanced search filters. The project should support Bangla text compatibility.
+
+Features & Functionalities
+1. Data Upload & Storage
+A dedicated upload page where users can upload multiple TXT files at once.
+Users must provide a batch name when uploading. The uploaded files will be stored under a folder named after the batch.
+The PostgreSQL database will store the extracted data from the TXT files.
+Each file should be organized under its batch name, and the system should maintain the file structure in the database.
+2. Advanced Search & Filtering
+A search page where users can search for records using various fields:
+SI Number
+Name
+Father’s Name
+Mother’s Name
+Occupation
+Address
+Date of Birth
+The system should retrieve and display the relevant records.
+Bangla text should be searchable.
+A button next to the search box that displays all stored records.
+3. Data Organization & Viewing
+An "All Data" page to view stored data:
+Folder-wise structure: Users can click on a folder (batch name) to view the TXT files within.
+Clicking on a file should display its stored data.
+4. Data Analysis
+A data analysis page that provides reports on:
+Total records available.
+Occupation-wise data distribution, displayed folder-wise.
+Clicking on a folder should show occupation-specific data analysis.
+5. Friend & Enemy Categorization
+Every search result card will have two buttons:
+Friend → Marks the record as a "Friend" and adds it to a separate Friend List.
+Enemy → Marks the record as an "Enemy" and adds it to a separate Enemy List.
+A new page will be created to view Friend List and Enemy List, displayed folder-wise.
+6. Additional Features
+Edit Feature: Allow editing of individual records from search results.
+Delete Feature: Enable deleting individual records from search results.
+Delete All Feature: Add an option to delete all stored data in the "All Data" page.
+File Name Display: Each search result should display the file name where the record is stored.
+Technical Requirements
+Framework: Streamlit (Python-based UI)
+Database: PostgreSQL (for storage)
+Authentication & Data Processing: Use provided auth.py and data_processor.py files.
