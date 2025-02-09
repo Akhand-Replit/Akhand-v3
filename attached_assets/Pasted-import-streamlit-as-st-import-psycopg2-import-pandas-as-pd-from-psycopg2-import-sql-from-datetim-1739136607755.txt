@@ -1,0 +1,72 @@
+import streamlit as st
+import psycopg2
+import pandas as pd
+from psycopg2 import sql
+from datetime import datetime
+
+# PostgreSQL Database Configuration
+DB_CONFIG = {
+    "dbname": "your_database",
+    "user": "your_user",
+    "password": "your_password",
+    "host": "your_host",
+    "port": "your_port"
+}
+
+# Function to connect to PostgreSQL
+def connect_db():
+    return psycopg2.connect(**DB_CONFIG)
+
+# Fetch records from the main table
+def fetch_records():
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, details FROM people ORDER BY id ASC")
+    records = cur.fetchall()
+    cur.close()
+    conn.close()
+    return records
+
+# Insert marked record into another table
+def insert_marked_record(person_id, name, details, category):
+    conn = connect_db()
+    cur = conn.cursor()
+    query = sql.SQL(
+        "INSERT INTO friend_enemy_list (person_id, name, details, category, tagged_at) VALUES (%s, %s, %s, %s, %s)"
+    )
+    cur.execute(query, (person_id, name, details, category, datetime.now()))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# Streamlit UI
+st.title("Mark People as Friend or Enemy")
+
+# Fetch records from PostgreSQL
+records = fetch_records()
+
+# Convert to DataFrame for better display
+df = pd.DataFrame(records, columns=["ID", "Name", "Details"])
+
+# Display the records
+st.dataframe(df)
+
+# Select a record
+selected_id = st.selectbox("Select a person:", df["ID"])
+
+if selected_id:
+    selected_record = df[df["ID"] == selected_id].iloc[0]
+
+    st.write(f"**Name:** {selected_record['Name']}")
+    st.write(f"**Details:** {selected_record['Details']}")
+
+    # Buttons to mark as Friend or Enemy
+    if st.button("Mark as Friend"):
+        insert_marked_record(selected_id, selected_record["Name"], selected_record["Details"], "Friend")
+        st.success(f"{selected_record['Name']} has been marked as a Friend!")
+        st.experimental_rerun()
+
+    if st.button("Mark as Enemy"):
+        insert_marked_record(selected_id, selected_record["Name"], selected_record["Details"], "Enemy")
+        st.warning(f"{selected_record['Name']} has been marked as an Enemy!")
+        st.experimental_rerun()

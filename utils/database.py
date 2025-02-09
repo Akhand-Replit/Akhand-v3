@@ -45,11 +45,12 @@ class Database:
                 )
             """)
 
-            # Create relationships table
+            # Drop and recreate relationships table with proper structure
+            cur.execute("DROP TABLE IF EXISTS relationships CASCADE")
             cur.execute("""
-                CREATE TABLE IF NOT EXISTS relationships (
+                CREATE TABLE relationships (
                     id SERIAL PRIMARY KEY,
-                    record_id INTEGER REFERENCES records(id),
+                    record_id INTEGER REFERENCES records(id) ON DELETE CASCADE,
                     relationship_type VARCHAR(10) CHECK (relationship_type IN ('friend', 'enemy')),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(record_id)
