@@ -45,6 +45,16 @@ class Database:
                 )
             """)
 
+            # Create relationships table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS relationships (
+                    id SERIAL PRIMARY KEY,
+                    record_id INTEGER REFERENCES records(id),
+                    relationship_type VARCHAR(10) CHECK (relationship_type IN ('friend', 'enemy')),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(record_id)
+                )
+            """)
             self.conn.commit()
 
     def clear_all_data(self):
@@ -52,6 +62,7 @@ class Database:
         with self.conn.cursor() as cur:
             cur.execute("TRUNCATE records CASCADE")
             cur.execute("TRUNCATE batches CASCADE")
+            cur.execute("TRUNCATE relationships CASCADE") #added this line
             self.conn.commit()
 
     def get_batch_files(self, batch_id):
@@ -217,4 +228,34 @@ class Database:
                 GROUP BY পেশা
                 ORDER BY count DESC
             """)
+            return cur.fetchall()
+
+    def add_relationship(self, record_id: int, relationship_type: str):
+        """Add or update a relationship (friend/enemy) for a record"""
+        with self.conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO relationships (record_id, relationship_type)
+                VALUES (%s, %s)
+                ON CONFLICT (record_id)
+                DO UPDATE SET relationship_type = EXCLUDED.relationship_type
+            """, (record_id, relationship_type))
+            self.conn.commit()
+
+    def remove_relationship(self, record_id: int):
+        """Remove a relationship for a record"""
+        with self.conn.cursor() as cur:
+            cur.execute("DELETE FROM relationships WHERE record_id = %s", (record_id,))
+            self.conn.commit()
+
+    def get_relationships(self, relationship_type: str):
+        """Get all records with a specific relationship type"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT r.*, b.name as batch_name, r.file_name, rel.relationship_type
+                FROM records r
+                JOIN batches b ON r.batch_id = b.id
+                JOIN relationships rel ON r.id = rel.record_id
+                WHERE rel.relationship_type = %s
+                ORDER BY rel.created_at DESC
+            """, (relationship_type,))
             return cur.fetchall()

@@ -74,6 +74,19 @@ def search_page():
                                 <p><strong>ফাইল:</strong> {result['batch_name']}/{result['file_name']}</p>
                             </div>
                             """, unsafe_allow_html=True)
+
+                            # Add Friend/Enemy buttons
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                if st.button("🤝 বন্ধু হিসেবে যোগ করুন", key=f"friend_{result['id']}", type="primary"):
+                                    db.add_relationship(result['id'], 'friend')
+                                    st.success("বন্ধু হিসেবে যোগ করা হয়েছে!")
+                                    st.rerun()
+                            with col2:
+                                if st.button("⚔️ শত্রু হিসেবে যোগ করুন", key=f"enemy_{result['id']}", type="secondary"):
+                                    db.add_relationship(result['id'], 'enemy')
+                                    st.success("শত্রু হিসেবে যোগ করা হয়েছে!")
+                                    st.rerun()
                 else:
                     st.info("কোন ফলাফল পাওয়া যায়নি")
 
