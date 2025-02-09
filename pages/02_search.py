@@ -13,6 +13,12 @@ def search_page():
 
     st.title("🔍 তথ্য খুঁজুন")
 
+    # Initialize session state for confirmations
+    if 'confirm_friend' not in st.session_state:
+        st.session_state.confirm_friend = None
+    if 'confirm_enemy' not in st.session_state:
+        st.session_state.confirm_enemy = None
+
     db = Database()
 
     # Advanced search fields
@@ -75,26 +81,57 @@ def search_page():
                             </div>
                             """, unsafe_allow_html=True)
 
-                            # Add Friend/Enemy buttons with improved error handling
+                            # Add Friend/Enemy buttons with confirmation
                             col1, col2 = st.columns(2)
+
                             with col1:
                                 if st.button("🤝 বন্ধু হিসেবে যোগ করুন", key=f"friend_{result['id']}", type="primary"):
-                                    try:
-                                        db.add_relationship(result['id'], 'friend')
-                                        st.success("✅ বন্ধু হিসেবে যোগ করা হয়েছে!")
-                                        st.rerun()
-                                    except Exception as e:
-                                        logger.error(f"Error adding friend: {str(e)}")
-                                        st.error("❌ বন্ধু হিসেবে যোগ করার সময় সমস্যা হয়েছে")
+                                    st.session_state.confirm_friend = result['id']
+                                    st.session_state.confirm_enemy = None
+
+                                # Show confirmation for friend
+                                if st.session_state.confirm_friend == result['id']:
+                                    st.warning(f"আপনি কি নিশ্চিত {result['নাম']} কে বন্ধু হিসেবে যোগ করতে চান?")
+                                    conf_col1, conf_col2 = st.columns(2)
+                                    with conf_col1:
+                                        if st.button("হ্যাঁ", key=f"confirm_friend_{result['id']}", type="primary"):
+                                            try:
+                                                db.add_relationship(result['id'], 'friend')
+                                                st.success("✅ বন্ধু হিসেবে যোগ করা হয়েছে!")
+                                                st.session_state.confirm_friend = None
+                                                st.rerun()
+                                            except Exception as e:
+                                                logger.error(f"Error adding friend: {str(e)}")
+                                                st.error("❌ বন্ধু হিসেবে যোগ করার সময় সমস্যা হয়েছে")
+                                    with conf_col2:
+                                        if st.button("না", key=f"cancel_friend_{result['id']}", type="secondary"):
+                                            st.session_state.confirm_friend = None
+                                            st.rerun()
+
                             with col2:
                                 if st.button("⚔️ শত্রু হিসেবে যোগ করুন", key=f"enemy_{result['id']}", type="secondary"):
-                                    try:
-                                        db.add_relationship(result['id'], 'enemy')
-                                        st.success("✅ শত্রু হিসেবে যোগ করা হয়েছে!")
-                                        st.rerun()
-                                    except Exception as e:
-                                        logger.error(f"Error adding enemy: {str(e)}")
-                                        st.error("❌ শত্রু হিসেবে যোগ করার সময় সমস্যা হয়েছে")
+                                    st.session_state.confirm_enemy = result['id']
+                                    st.session_state.confirm_friend = None
+
+                                # Show confirmation for enemy
+                                if st.session_state.confirm_enemy == result['id']:
+                                    st.warning(f"আপনি কি নিশ্চিত {result['নাম']} কে শত্রু হিসেবে যোগ করতে চান?")
+                                    conf_col1, conf_col2 = st.columns(2)
+                                    with conf_col1:
+                                        if st.button("হ্যাঁ", key=f"confirm_enemy_{result['id']}", type="primary"):
+                                            try:
+                                                db.add_relationship(result['id'], 'enemy')
+                                                st.success("✅ শত্রু হিসেবে যোগ করা হয়েছে!")
+                                                st.session_state.confirm_enemy = None
+                                                st.rerun()
+                                            except Exception as e:
+                                                logger.error(f"Error adding enemy: {str(e)}")
+                                                st.error("❌ শত্রু হিসেবে যোগ করার সময় সমস্যা হয়েছে")
+                                    with conf_col2:
+                                        if st.button("না", key=f"cancel_enemy_{result['id']}", type="secondary"):
+                                            st.session_state.confirm_enemy = None
+                                            st.rerun()
+
                 else:
                     st.info("কোন ফলাফল পাওয়া যায়নি")
 
