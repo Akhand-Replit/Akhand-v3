@@ -47,6 +47,36 @@ class Database:
 
             self.conn.commit()
 
+    def clear_all_data(self):
+        """Clear all data from the database"""
+        with self.conn.cursor() as cur:
+            cur.execute("TRUNCATE records CASCADE")
+            cur.execute("TRUNCATE batches CASCADE")
+            self.conn.commit()
+
+    def get_batch_files(self, batch_id):
+        """Get unique files in a batch"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT DISTINCT file_name
+                FROM records
+                WHERE batch_id = %s
+                ORDER BY file_name
+            """, (batch_id,))
+            return cur.fetchall()
+
+    def get_file_records(self, batch_id, file_name):
+        """Get records for a specific file in a batch"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT r.*, b.name as batch_name
+                FROM records r
+                JOIN batches b ON r.batch_id = b.id
+                WHERE r.batch_id = %s AND r.file_name = %s
+                ORDER BY r.created_at DESC
+            """, (batch_id, file_name))
+            return cur.fetchall()
+
     def add_batch(self, batch_name):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
