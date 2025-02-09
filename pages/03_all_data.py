@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from utils.database import Database
 from utils.styling import apply_custom_styling
 import logging
@@ -103,11 +104,18 @@ def all_data_page():
 
                     if not changes.empty:
                         for idx in changes.index:
-                            record_id = df.iloc[idx]['id']
-                            # Convert to dictionary and ensure string types
+                            record_id = int(df.iloc[idx]['id'])  # Convert to native Python int
+                            # Convert DataFrame row to dictionary with proper type conversion
+                            row_data = edited_df.iloc[idx]
                             updated_data = {
-                                k: str(v) if pd.notnull(v) else None 
-                                for k, v in edited_df.iloc[idx].to_dict().items()
+                                'ক্রমিক_নং': str(row_data['ক্রমিক_নং']) if pd.notnull(row_data['ক্রমিক_নং']) else '',
+                                'নাম': str(row_data['নাম']) if pd.notnull(row_data['নাম']) else '',
+                                'ভোটার_নং': str(row_data['ভোটার_নং']) if pd.notnull(row_data['ভোটার_নং']) else '',
+                                'পিতার_নাম': str(row_data['পিতার_নাম']) if pd.notnull(row_data['পিতার_নাম']) else '',
+                                'মাতার_নাম': str(row_data['মাতার_নাম']) if pd.notnull(row_data['মাতার_নাম']) else '',
+                                'পেশা': str(row_data['পেশা']) if pd.notnull(row_data['পেশা']) else '',
+                                'ঠিকানা': str(row_data['ঠিকানা']) if pd.notnull(row_data['ঠিকানা']) else '',
+                                'জন্ম_তারিখ': str(row_data['জন্ম_তারিখ']) if pd.notnull(row_data['জন্ম_তারিখ']) else ''
                             }
                             db.update_record(record_id, updated_data)
 
