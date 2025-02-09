@@ -24,19 +24,40 @@ def all_data_page():
         st.info("কোন ডাটা পাওয়া যায়নি")
         return
 
-    # Clear all data button with confirmation (moved from sidebar to main page)
+    # Initialize session state for delete confirmation
+    if 'confirm_delete_all' not in st.session_state:
+        st.session_state.confirm_delete_all = False
+
+    # Clear all data button with confirmation dialog
     col1, col2 = st.columns([5, 1])
     with col2:
         if st.button("সব ডাটা মুছুন", type="secondary"):
-            confirm = st.checkbox("আপনি কি নিশ্চিত? এই কাজটি অপরিবর্তনীয়!")
-            if confirm:
+            st.session_state.confirm_delete_all = True
+
+    # Show confirmation dialog
+    if st.session_state.confirm_delete_all:
+        st.warning("""
+        ⚠️ সতর্কতা!
+        আপনি কি নিশ্চিত যে আপনি সমস্ত ডেটা মুছে ফেলতে চান?
+        এই কাজটি অপরিবর্তনীয়!
+        """)
+
+        confirm_col1, confirm_col2 = st.columns(2)
+        with confirm_col1:
+            if st.button("হ্যাঁ, সব মুছে ফেলুন", type="primary", use_container_width=True):
                 try:
                     db.clear_all_data()
-                    st.success("সব ডাটা সফলভাবে মুছে ফেলা হয়েছে")
+                    st.success("✅ সমস্ত ডেটা সফলভাবে মুছে ফেলা হয়েছে")
+                    st.session_state.confirm_delete_all = False
                     st.rerun()
                 except Exception as e:
                     logger.error(f"Clear data error: {str(e)}")
-                    st.error(f"ডাটা মুছতে সমস্যা হয়েছে: {str(e)}")
+                    st.error(f"❌ ডেটা মুছে ফেলার সময় সমস্যা হয়েছে: {str(e)}")
+
+        with confirm_col2:
+            if st.button("না, বাতিল করুন", type="secondary", use_container_width=True):
+                st.session_state.confirm_delete_all = False
+                st.rerun()
 
     # Batch selection
     with col1:
