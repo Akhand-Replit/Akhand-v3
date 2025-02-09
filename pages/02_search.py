@@ -15,20 +15,45 @@ def search_page():
 
     db = Database()
 
-    # Search interface
-    col1, col2 = st.columns([4, 1])
+    # Advanced search fields
+    with st.container():
+        col1, col2 = st.columns(2)
 
-    with col1:
-        search_term = st.text_input("অনুসন্ধান করুন", placeholder="নাম, পিতার নাম, ঠিকানা ইত্যাদি")
+        with col1:
+            si_number = st.text_input("ক্রমিক নং")
+            name = st.text_input("নাম")
+            fathers_name = st.text_input("পিতার নাম")
+            mothers_name = st.text_input("মাতার নাম")
 
-    with col2:
+        with col2:
+            occupation = st.text_input("পেশা")
+            address = st.text_input("ঠিকানা")
+            date_of_birth = st.text_input("জন্ম তারিখ")
+
+    # Search buttons
+    col3, col4 = st.columns([4, 1])
+    with col3:
+        search_button = st.button("অনুসন্ধান করুন", type="primary")
+    with col4:
         show_all = st.button("সব দেখুন", type="secondary")
 
-    if search_term or show_all:
+    if search_button or show_all:
         try:
             with st.spinner("অনুসন্ধান করা হচ্ছে..."):
-                if search_term:
-                    results = db.search_records(search_term)
+                if search_button:
+                    # Create search criteria dictionary
+                    search_criteria = {
+                        'ক্রমিক_নং': si_number,
+                        'নাম': name,
+                        'পিতার_নাম': fathers_name,
+                        'মাতার_নাম': mothers_name,
+                        'পেশা': occupation,
+                        'ঠিকানা': address,
+                        'জন্ম_তারিখ': date_of_birth
+                    }
+                    # Remove empty criteria
+                    search_criteria = {k: v for k, v in search_criteria.items() if v}
+                    results = db.search_records_advanced(search_criteria)
                 else:
                     results = db.get_batch_records(None)  # Get all records
 
@@ -46,7 +71,7 @@ def search_page():
                                 <p><strong>মাতার নাম:</strong> {result['মাতার_নাম']}</p>
                                 <p><strong>পেশা:</strong> {result['পেশা']}</p>
                                 <p><strong>ঠিকানা:</strong> {result['ঠিকানা']}</p>
-                                <p><strong>ব্যাচ:</strong> {result['batch_name']}</p>
+                                <p><strong>ফাইল:</strong> {result['batch_name']}/{result['file_name']}</p>
                             </div>
                             """, unsafe_allow_html=True)
                 else:

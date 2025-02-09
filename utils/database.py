@@ -73,10 +73,34 @@ class Database:
             ))
             self.conn.commit()
 
+    def search_records_advanced(self, criteria):
+        """
+        Advanced search with multiple criteria
+        """
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            query = """
+                SELECT r.*, b.name as batch_name, r.file_name
+                FROM records r
+                JOIN batches b ON r.batch_id = b.id
+                WHERE 1=1
+            """
+            params = []
+
+            for field, value in criteria.items():
+                if value:
+                    query += f" AND {field} ILIKE %s"
+                    params.append(f"%{value}%")
+
+            query += " ORDER BY r.created_at DESC"
+
+            logger.info(f"Executing search query: {query}")
+            cur.execute(query, params)
+            return cur.fetchall()
+
     def search_records(self, search_term):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT r.*, b.name as batch_name
+                SELECT r.*, b.name as batch_name, r.file_name
                 FROM records r
                 JOIN batches b ON r.batch_id = b.id
                 WHERE 
@@ -96,14 +120,14 @@ class Database:
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             if batch_id is None:
                 cur.execute("""
-                    SELECT r.*, b.name as batch_name 
+                    SELECT r.*, b.name as batch_name, r.file_name
                     FROM records r
                     JOIN batches b ON r.batch_id = b.id
                     ORDER BY r.created_at DESC
                 """)
             else:
                 cur.execute("""
-                    SELECT r.*, b.name as batch_name 
+                    SELECT r.*, b.name as batch_name, r.file_name
                     FROM records r
                     JOIN batches b ON r.batch_id = b.id
                     WHERE r.batch_id = %s
