@@ -51,6 +51,15 @@ class Database:
                 CREATE TABLE relationships (
                     id SERIAL PRIMARY KEY,
                     record_id INTEGER REFERENCES records(id) ON DELETE CASCADE,
+                    ক্রমিক_নং VARCHAR(50),
+                    নাম TEXT,
+                    ভোটার_নং VARCHAR(100),
+                    পিতার_নাম TEXT,
+                    মাতার_নাম TEXT,
+                    পেশা TEXT,
+                    ঠিকানা TEXT,
+                    batch_name VARCHAR(255),
+                    file_name VARCHAR(255),
                     relationship_type VARCHAR(10) CHECK (relationship_type IN ('friend', 'enemy')),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE(record_id)
@@ -152,7 +161,7 @@ class Database:
         """
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             query = """
-                SELECT r.*, b.name as batch_name, r.file_name
+                SELECT r.*, b.name as batch_name
                 FROM records r
                 JOIN batches b ON r.batch_id = b.id
                 WHERE 1=1
@@ -173,7 +182,7 @@ class Database:
     def search_records(self, search_term):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT r.*, b.name as batch_name, r.file_name
+                SELECT r.*, b.name as batch_name
                 FROM records r
                 JOIN batches b ON r.batch_id = b.id
                 WHERE 
@@ -193,14 +202,14 @@ class Database:
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             if batch_id is None:
                 cur.execute("""
-                    SELECT r.*, b.name as batch_name, r.file_name
+                    SELECT r.*, b.name as batch_name
                     FROM records r
                     JOIN batches b ON r.batch_id = b.id
                     ORDER BY r.created_at DESC
                 """)
             else:
                 cur.execute("""
-                    SELECT r.*, b.name as batch_name, r.file_name
+                    SELECT r.*, b.name as batch_name
                     FROM records r
                     JOIN batches b ON r.batch_id = b.id
                     WHERE r.batch_id = %s
@@ -234,21 +243,50 @@ class Database:
     def add_relationship(self, record_id: int, relationship_type: str):
         """Add or update a relationship (friend/enemy) for a record"""
         try:
-            # Convert record_id to native Python int
-            record_id = int(record_id)  # Ensures native Python int type
+            record_id = int(record_id)  # Convert to native Python int
 
-            with self.conn.cursor() as cur:
-                # First verify the record exists
-                cur.execute("SELECT id FROM records WHERE id = %s", (record_id,))
-                if not cur.fetchone():
+            with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+                # First get the record details
+                cur.execute("""
+                    SELECT r.*, b.name as batch_name 
+                    FROM records r
+                    JOIN batches b ON r.batch_id = b.id
+                    WHERE r.id = %s
+                """, (record_id,))
+
+                record = cur.fetchone()
+                if not record:
                     raise ValueError(f"Record with ID {record_id} not found")
 
+                # Insert or update relationship with copied data
                 cur.execute("""
-                    INSERT INTO relationships (record_id, relationship_type)
-                    VALUES (%s, %s)
-                    ON CONFLICT (record_id)
-                    DO UPDATE SET relationship_type = EXCLUDED.relationship_type
-                """, (record_id, relationship_type))
+                    INSERT INTO relationships (
+                        record_id, ক্রমিক_নং, নাম, ভোটার_নং, পিতার_নাম,
+                        মাতার_নাম, পেশা, ঠিকানা, batch_name, file_name,
+                        relationship_type
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
+                    ON CONFLICT (record_id) 
+                    DO UPDATE SET
+                        ক্রমিক_নং = EXCLUDED.ক্রমিক_নং,
+                        নাম = EXCLUDED.নাম,
+                        ভোটার_নং = EXCLUDED.ভোটার_নং,
+                        পিতার_নাম = EXCLUDED.পিতার_নাম,
+                        মাতার_নাম = EXCLUDED.মাতার_নাম,
+                        পেশা = EXCLUDED.পেশা,
+                        ঠিকানা = EXCLUDED.ঠিকানা,
+                        batch_name = EXCLUDED.batch_name,
+                        file_name = EXCLUDED.file_name,
+                        relationship_type = EXCLUDED.relationship_type,
+                        created_at = CURRENT_TIMESTAMP
+                """, (
+                    record_id, record['ক্রমিক_নং'], record['নাম'],
+                    record['ভোটার_নং'], record['পিতার_নাম'],
+                    record['মাতার_নাম'], record['পেশা'],
+                    record['ঠিকানা'], record['batch_name'],
+                    record['file_name'], relationship_type
+                ))
                 self.conn.commit()
                 logger.info(f"Successfully added/updated relationship for record {record_id}")
         except Exception as e:
@@ -266,11 +304,8 @@ class Database:
         """Get all records with a specific relationship type"""
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT r.*, b.name as batch_name, r.file_name, rel.relationship_type
-                FROM records r
-                JOIN batches b ON r.batch_id = b.id
-                JOIN relationships rel ON r.id = rel.record_id
-                WHERE rel.relationship_type = %s
-                ORDER BY rel.created_at DESC
+                SELECT * FROM relationships
+                WHERE relationship_type = %s
+                ORDER BY created_at DESC
             """, (relationship_type,))
             return cur.fetchall()

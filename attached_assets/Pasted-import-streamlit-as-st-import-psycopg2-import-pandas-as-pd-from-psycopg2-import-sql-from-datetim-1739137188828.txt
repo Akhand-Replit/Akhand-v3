@@ -1,0 +1,65 @@
+import streamlit as st
+import psycopg2
+import pandas as pd
+from psycopg2 import sql
+from datetime import datetime
+
+# PostgreSQL Database Configuration
+DB_CONFIG = {
+    "dbname": "your_database",
+    "user": "your_user",
+    "password": "your_password",
+    "host": "your_host",
+    "port": "your_port"
+}
+
+# Function to connect to PostgreSQL
+def connect_db():
+    return psycopg2.connect(**DB_CONFIG)
+
+# Fetch records from the source table
+def fetch_source_records():
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, email, created_at FROM source_table ORDER BY id ASC")
+    records = cur.fetchall()
+    cur.close()
+    conn.close()
+    return records
+
+# Insert selected records into the destination table
+def copy_record_to_destination(record_id, name, email):
+    conn = connect_db()
+    cur = conn.cursor()
+    query = sql.SQL(
+        "INSERT INTO destination_table (name, email, copied_at) VALUES (%s, %s, %s)"
+    )
+    cur.execute(query, (name, email, datetime.now()))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+# Streamlit UI
+st.title("Copy Records Between Tables in PostgreSQL")
+
+# Fetch and display source records
+records = fetch_source_records()
+
+if records:
+    df = pd.DataFrame(records, columns=["ID", "Name", "Email", "Created At"])
+    st.dataframe(df)
+
+    # Select a record to copy
+    selected_id = st.selectbox("Select a record to copy:", df["ID"])
+
+    if selected_id:
+        selected_record = df[df["ID"] == selected_id].iloc[0]
+        st.write(f"**Name:** {selected_record['Name']}")
+        st.write(f"**Email:** {selected_record['Email']}")
+
+        if st.button("Copy Record to Destination"):
+            copy_record_to_destination(selected_record["ID"], selected_record["Name"], selected_record["Email"])
+            st.success(f"Record {selected_record['ID']} copied successfully!")
+            st.experimental_rerun()
+else:
+    st.warning("No records found in the source table.")
