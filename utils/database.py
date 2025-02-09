@@ -103,6 +103,35 @@ class Database:
             ))
             self.conn.commit()
 
+    def update_record(self, record_id, updated_data):
+        """Update a record with new data"""
+        with self.conn.cursor() as cur:
+            query = """
+                UPDATE records SET
+                    ক্রমিক_নং = %s,
+                    নাম = %s,
+                    ভোটার_নং = %s,
+                    পিতার_নাম = %s,
+                    মাতার_নাম = %s,
+                    পেশা = %s,
+                    ঠিকানা = %s,
+                    জন্ম_তারিখ = %s
+                WHERE id = %s
+            """
+            cur.execute(query, (
+                updated_data.get('ক্রমিক_নং'),
+                updated_data.get('নাম'),
+                updated_data.get('ভোটার_নং'),
+                updated_data.get('পিতার_নাম'),
+                updated_data.get('মাতার_নাম'),
+                updated_data.get('পেশা'),
+                updated_data.get('ঠিকানা'),
+                updated_data.get('জন্ম_তারিখ'),
+                record_id
+            ))
+            self.conn.commit()
+
+
     def search_records_advanced(self, criteria):
         """
         Advanced search with multiple criteria
