@@ -1,20 +1,21 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
         self.conn = psycopg2.connect(
-            dbname="postgres",
-            user="postgres",
-            password="postgres",
-            host="localhost",
-            port="5432"
+            dbname=os.getenv('PGDATABASE'),
+            user=os.getenv('PGUSER'),
+            password=os.getenv('PGPASSWORD'),
+            host=os.getenv('PGHOST'),
+            port=os.getenv('PGPORT')
         )
         self.create_tables()
-    
+
     def create_tables(self):
         with self.conn.cursor() as cur:
             # Create batches table
@@ -25,7 +26,7 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Create records table
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS records (
@@ -43,19 +44,19 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             self.conn.commit()
-    
+
     def add_batch(self, batch_name):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
-                "INSERT INTO batches (name) VALUES (%s) RETURNING id",
+                "INSERT INTO batches (name) VALUES (%s) RETURNING id, name, created_at",
                 (batch_name,)
             )
             result = cur.fetchone()
             self.conn.commit()
             return result['id']
-    
+
     def add_record(self, batch_id, file_name, record_data):
         with self.conn.cursor() as cur:
             cur.execute("""
@@ -71,7 +72,7 @@ class Database:
                 record_data.get('জন্ম_তারিখ'), record_data.get('ঠিকানা')
             ))
             self.conn.commit()
-    
+
     def search_records(self, search_term):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
@@ -85,18 +86,29 @@ class Database:
                     ঠিকানা ILIKE %s
             """, (f"%{search_term}%", f"%{search_term}%", f"%{search_term}%", f"%{search_term}%"))
             return cur.fetchall()
-    
+
     def get_all_batches(self):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM batches ORDER BY created_at DESC")
             return cur.fetchall()
-    
+
     def get_batch_records(self, batch_id):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("""
-                SELECT * FROM records WHERE batch_id = %s
-                ORDER BY created_at DESC
-            """, (batch_id,))
+            if batch_id is None:
+                cur.execute("""
+                    SELECT r.*, b.name as batch_name 
+                    FROM records r
+                    JOIN batches b ON r.batch_id = b.id
+                    ORDER BY r.created_at DESC
+                """)
+            else:
+                cur.execute("""
+                    SELECT r.*, b.name as batch_name 
+                    FROM records r
+                    JOIN batches b ON r.batch_id = b.id
+                    WHERE r.batch_id = %s
+                    ORDER BY r.created_at DESC
+                """, (batch_id,))
             return cur.fetchall()
 
     def get_occupation_stats(self):
