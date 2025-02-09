@@ -78,14 +78,14 @@ def all_data_page():
                     'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ'
                 ]],
                 column_config={
-                    'ক্রমিক_নং': 'ক্রমিক নং',
-                    'নাম': 'নাম',
-                    'ভোটার_নং': 'ভোটার নং',
-                    'পিতার_নাম': 'পিতার নাম',
-                    'মাতার_নাম': 'মাতার নাম',
-                    'পেশা': 'পেশা',
-                    'ঠিকানা': 'ঠিকানা',
-                    'জন্ম_তারিখ': 'জন্ম তারিখ'
+                    'ক্রমিক_নং': st.column_config.TextColumn('ক্রমিক নং'),
+                    'নাম': st.column_config.TextColumn('নাম'),
+                    'ভোটার_নং': st.column_config.TextColumn('ভোটার নং'),
+                    'পিতার_নাম': st.column_config.TextColumn('পিতার নাম'),
+                    'মাতার_নাম': st.column_config.TextColumn('মাতার নাম'),
+                    'পেশা': st.column_config.TextColumn('পেশা'),
+                    'ঠিকানা': st.column_config.TextColumn('ঠিকানা'),
+                    'জন্ম_তারিখ': st.column_config.TextColumn('জন্ম তারিখ')
                 },
                 hide_index=True,
                 use_container_width=True,
@@ -104,7 +104,11 @@ def all_data_page():
                     if not changes.empty:
                         for idx in changes.index:
                             record_id = df.iloc[idx]['id']
-                            updated_data = edited_df.iloc[idx].to_dict()
+                            # Convert to dictionary and ensure string types
+                            updated_data = {
+                                k: str(v) if pd.notnull(v) else None 
+                                for k, v in edited_df.iloc[idx].to_dict().items()
+                            }
                             db.update_record(record_id, updated_data)
 
                         st.success("পরিবর্তনগুলি সফলভাবে সংরক্ষিত হয়েছে!")
