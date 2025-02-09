@@ -196,7 +196,20 @@ class Database:
                 """, (batch_id,))
             return cur.fetchall()
 
+    def get_batch_occupation_stats(self, batch_id):
+        """Get occupation statistics for a specific batch"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT পেশা, COUNT(*) as count
+                FROM records
+                WHERE batch_id = %s
+                GROUP BY পেশা
+                ORDER BY count DESC
+            """, (batch_id,))
+            return cur.fetchall()
+
     def get_occupation_stats(self):
+        """Get overall occupation statistics"""
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
                 SELECT পেশা, COUNT(*) as count
