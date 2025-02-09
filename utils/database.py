@@ -118,17 +118,19 @@ class Database:
                     জন্ম_তারিখ = %s
                 WHERE id = %s
             """
-            cur.execute(query, (
-                updated_data.get('ক্রমিক_নং'),
-                updated_data.get('নাম'),
-                updated_data.get('ভোটার_নং'),
-                updated_data.get('পিতার_নাম'),
-                updated_data.get('মাতার_নাম'),
-                updated_data.get('পেশা'),
-                updated_data.get('ঠিকানা'),
-                updated_data.get('জন্ম_তারিখ'),
+            # Ensure all values are strings or None
+            values = (
+                str(updated_data.get('ক্রমিক_নং', '')),
+                str(updated_data.get('নাম', '')),
+                str(updated_data.get('ভোটার_নং', '')),
+                str(updated_data.get('পিতার_নাম', '')),
+                str(updated_data.get('মাতার_নাম', '')),
+                str(updated_data.get('পেশা', '')),
+                str(updated_data.get('ঠিকানা', '')),
+                str(updated_data.get('জন্ম_তারিখ', '')),
                 record_id
-            ))
+            )
+            cur.execute(query, values)
             self.conn.commit()
 
 
