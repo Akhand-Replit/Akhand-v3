@@ -62,8 +62,8 @@ def relationships_page():
         format_func=lambda x: f"ব্যাচ: {x}"
     )
 
-    # Create tabs for Friend and Enemy lists
-    tab1, tab2 = st.tabs(["বন্ধু তালিকা", "শত্রু তালিকা"])
+    # Create tabs for Friend, Enemy and Connected lists
+    tab1, tab2, tab3 = st.tabs(["বন্ধু তালিকা", "শত্রু তালিকা", "সংযুক্ত তালিকা"])
 
     def display_relationship_section(relationship_type):
         # Get records based on selection
@@ -76,7 +76,7 @@ def relationships_page():
                       if r['batch_id'] == batch_id]
 
         if not records:
-            st.info(f"কোন {'বন্ধু' if relationship_type == 'Friend' else 'শত্রু'} যোগ করা হয়নি")
+            st.info(f"কোন {'বন্ধু' if relationship_type == 'Friend' else 'শত্রু' if relationship_type == 'Enemy' else 'সংযুক্ত ব্যক্তি'} যোগ করা হয়নি")
             return
 
         # Show total count
@@ -121,6 +121,10 @@ def relationships_page():
     with tab2:
         st.subheader("⚔️ শত্রু তালিকা")
         display_relationship_section('Enemy')
+
+    with tab3:
+        st.subheader("🔗 সংযুক্ত তালিকা")
+        display_relationship_section('Connected')
 
 if __name__ == "__main__":
     relationships_page()
