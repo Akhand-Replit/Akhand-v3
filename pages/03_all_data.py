@@ -120,7 +120,7 @@ def all_data_page():
                     'description': st.column_config.TextColumn('বিবরণ'),
                     'relationship_status': st.column_config.SelectboxColumn(
                         'সম্পর্কের ধরণ',
-                        options=['Regular', 'Friend', 'Enemy'],
+                        options=['Regular', 'Friend', 'Enemy', 'Connected'],
                         required=True,
                         default='Regular'
                     )
