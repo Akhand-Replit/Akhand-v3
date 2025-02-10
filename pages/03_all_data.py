@@ -97,7 +97,7 @@ def all_data_page():
             edited_df = st.data_editor(
                 df[[
                     'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
-                    'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ'
+                    'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
                 ]],
                 column_config={
                     'ক্রমিক_নং': st.column_config.TextColumn('ক্রমিক নং'),
@@ -107,7 +107,13 @@ def all_data_page():
                     'মাতার_নাম': st.column_config.TextColumn('মাতার নাম'),
                     'পেশা': st.column_config.TextColumn('পেশা'),
                     'ঠিকানা': st.column_config.TextColumn('ঠিকানা'),
-                    'জন্ম_তারিখ': st.column_config.TextColumn('জন্ম তারিখ')
+                    'জন্ম_তারিখ': st.column_config.TextColumn('জন্ম তারিখ'),
+                    'relationship_status': st.column_config.SelectboxColumn(
+                        'সম্পর্কের ধরণ',
+                        options=['Regular', 'Friend', 'Enemy'],
+                        required=True,
+                        default='Regular'
+                    )
                 },
                 hide_index=True,
                 use_container_width=True,
@@ -120,7 +126,7 @@ def all_data_page():
                     # Compare and update changed records
                     changes = edited_df.compare(df[[
                         'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
-                        'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ'
+                        'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
                     ]])
 
                     if not changes.empty:
@@ -136,7 +142,9 @@ def all_data_page():
                                 'মাতার_নাম': str(row_data['মাতার_নাম']) if pd.notnull(row_data['মাতার_নাম']) else '',
                                 'পেশা': str(row_data['পেশা']) if pd.notnull(row_data['পেশা']) else '',
                                 'ঠিকানা': str(row_data['ঠিকানা']) if pd.notnull(row_data['ঠিকানা']) else '',
-                                'জন্ম_তারিখ': str(row_data['জন্ম_তারিখ']) if pd.notnull(row_data['জন্ম_তারিখ']) else ''
+                                'জন্ম_তারিখ': str(row_data['জন্ম_তারিখ']) if pd.notnull(row_data['জন্ম_তারিখ']) else '',
+                                'relationship_status': str(row_data['relationship_status']) if pd.notnull(row_data['relationship_status']) else ''
+
                             }
                             db.update_record(record_id, updated_data)
 

@@ -7,6 +7,54 @@ import logging
 logger = logging.getLogger(__name__)
 apply_custom_styling()
 
+def display_result_card(result, db):
+    # Get batch and file information
+    batch_info = db.get_batch_by_id(result['batch_id'])
+    file_info = db.get_file_by_id(result['file_id']) if result['file_id'] else None
+
+    with st.container():
+        st.markdown("""
+        <style>
+        .result-card {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: #f8f9fa;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+        with st.container():
+            st.markdown('<div class="result-card">', unsafe_allow_html=True)
+
+            # Header with name and ID
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"### {result['নাম']}")
+            with col2:
+                st.markdown(f"**ক্রমিক নং:** {result['ক্রমিক_নং']}")
+
+            # Location info
+            st.markdown(f"📍 **Location:** {batch_info['name']}" + 
+                       (f" / {file_info['file_name']}" if file_info else ""))
+
+            # Main details
+            col3, col4 = st.columns(2)
+            with col3:
+                st.markdown(f"**ভোটার নং:** {result['ভোটার_নং']}")
+                st.markdown(f"**পিতার নাম:** {result['পিতার_নাম']}")
+                st.markdown(f"**মাতার নাম:** {result['মাতার_নাম']}")
+            with col4:
+                st.markdown(f"**পেশা:** {result['পেশা']}")
+                st.markdown(f"**ঠিকানা:** {result['ঠিকানা']}")
+                st.markdown(f"**জন্ম তারিখ:** {result['জন্ম_তারিখ']}")
+
+            # Relationship status
+            st.markdown(f"**সম্পর্কের ধরণ:** {result['relationship_status']}")
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
 def search_page():
     if 'authenticated' not in st.session_state or not st.session_state.authenticated:
         st.warning("অনুগ্রহ করে প্রথমে লগইন করুন")
@@ -38,10 +86,6 @@ def search_page():
     with col4:
         show_all = st.button("সব দেখুন", type="secondary")
 
-    # Initialize session state for form submission
-    if 'form_submitted' not in st.session_state:
-        st.session_state.form_submitted = False
-
     if search_button or show_all:
         try:
             with st.spinner("অনুসন্ধান করা হচ্ছে..."):
@@ -64,73 +108,9 @@ def search_page():
                 if results:
                     st.success(f"{len(results)}টি ফলাফল পাওয়া গেছে")
 
-                    # Store results in session state
-                    if 'search_results' not in st.session_state:
-                        st.session_state.search_results = results
-
-                    # Convert results to DataFrame
-                    df = pd.DataFrame(results)
-
-                    # Create a form to prevent auto-refresh
-                    with st.form(key='edit_form'):
-                        edited_df = st.data_editor(
-                            df[[
-                                'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
-                                'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
-                            ]],
-                            column_config={
-                                'ক্রমিক_নং': st.column_config.TextColumn('ক্রমিক নং'),
-                                'নাম': st.column_config.TextColumn('নাম'),
-                                'ভোটার_নং': st.column_config.TextColumn('ভোটার নং'),
-                                'পিতার_নাম': st.column_config.TextColumn('পিতার নাম'),
-                                'মাতার_নাম': st.column_config.TextColumn('মাতার নাম'),
-                                'পেশা': st.column_config.TextColumn('পেশা'),
-                                'ঠিকানা': st.column_config.TextColumn('ঠিকানা'),
-                                'জন্ম_তারিখ': st.column_config.TextColumn('জন্ম তারিখ'),
-                                'relationship_status': st.column_config.SelectboxColumn(
-                                    'সম্পর্কের ধরণ',
-                                    options=['Regular', 'Friend', 'Enemy'],
-                                    required=True,
-                                    default='Regular'
-                                )
-                            },
-                            hide_index=True,
-                            use_container_width=True,
-                            key="search_data_editor"
-                        )
-
-                        submit_button = st.form_submit_button("পরিবর্তনগুলি সংরক্ষণ করুন", type="primary")
-
-                        if submit_button:
-                            try:
-                                changes = edited_df.compare(df[[
-                                    'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
-                                    'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
-                                ]])
-
-                                if not changes.empty:
-                                    for idx in changes.index:
-                                        record_id = int(df.iloc[idx]['id'])
-                                        row_data = edited_df.iloc[idx]
-                                        updated_data = {
-                                            'ক্রমিক_নং': str(row_data['ক্রমিক_নং']) if pd.notnull(row_data['ক্রমিক_নং']) else '',
-                                            'নাম': str(row_data['নাম']) if pd.notnull(row_data['নাম']) else '',
-                                            'ভোটার_নং': str(row_data['ভোটার_নং']) if pd.notnull(row_data['ভোটার_নং']) else '',
-                                            'পিতার_নাম': str(row_data['পিতার_নাম']) if pd.notnull(row_data['পিতার_নাম']) else '',
-                                            'মাতার_নাম': str(row_data['মাতার_নাম']) if pd.notnull(row_data['মাতার_নাম']) else '',
-                                            'পেশা': str(row_data['পেশা']) if pd.notnull(row_data['পেশা']) else '',
-                                            'ঠিকানা': str(row_data['ঠিকানা']) if pd.notnull(row_data['ঠিকানা']) else '',
-                                            'জন্ম_তারিখ': str(row_data['জন্ম_তারিখ']) if pd.notnull(row_data['জন্ম_তারিখ']) else '',
-                                            'relationship_status': str(row_data['relationship_status']) if pd.notnull(row_data['relationship_status']) else 'Regular'
-                                        }
-                                        db.update_record(record_id, updated_data)
-
-                                    st.success("✅ পরিবর্তনগুলি সফলভাবে সংরক্ষিত হয়েছে!")
-                                    st.session_state.form_submitted = True
-                            except Exception as e:
-                                logger.error(f"Update error: {str(e)}")
-                                st.error(f"পরিবর্তন সংরক্ষণে সমস্যা হয়েছে: {str(e)}")
-
+                    # Display results in card format
+                    for result in results:
+                        display_result_card(result, db)
                 else:
                     st.info("কোন ফলাফল পাওয়া যায়নি")
 
