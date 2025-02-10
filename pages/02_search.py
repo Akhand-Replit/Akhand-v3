@@ -71,6 +71,7 @@ def search_page():
                                 <p><strong>পেশা:</strong> {result['পেশা']}</p>
                                 <p><strong>ঠিকানা:</strong> {result['ঠিকানা']}</p>
                                 <p><strong>ফাইল:</strong> {result['batch_name']}/{result['file_name']}</p>
+                                <p><strong>সম্পর্কের ধরণ:</strong> {result.get('relationship_status', 'Regular')}</p>
                             </div>
                             """, unsafe_allow_html=True)
 
