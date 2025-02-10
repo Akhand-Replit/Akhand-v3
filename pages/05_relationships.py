@@ -10,14 +10,23 @@ apply_custom_styling()
 
 def get_record_location(db, record):
     """Get batch and file information for a record"""
-    batch_info = db.get_batch_by_id(record['batch_id'])
-    file_info = db.get_file_by_id(record.get('file_id'))
+    try:
+        # Get batch information
+        batch_info = db.get_batch_by_id(record['batch_id'])
+        batch_name = batch_info['name'] if batch_info else 'Unknown Batch'
 
-    location = batch_info['name'] if batch_info else 'Unknown Batch'
-    if file_info and file_info.get('name'):
-        location += f" / {file_info['name']}"
+        # Get file information
+        file_info = db.get_file_by_id(record.get('file_id'))
+        file_name = file_info['name'] if file_info and file_info.get('name') else ''
 
-    return location
+        # Construct location string
+        if file_name:
+            return f"{batch_name} / {file_name}"
+        return batch_name
+
+    except Exception as e:
+        logger.error(f"Error getting record location: {e}")
+        return "Unknown Location"
 
 def display_relationship_card(record, db):
     """Display a single relationship card with profile image and details"""
@@ -44,7 +53,7 @@ def display_relationship_card(record, db):
             with col2:
                 st.markdown(f"**ক্রমিক নং:** {record['ক্রমিক_নং']}")
 
-            # Location info with batch name and file name
+            # Location info with both batch name and file name
             st.markdown(f"📍 **স্থান:** {get_record_location(db, record)}")
 
             # Main details
