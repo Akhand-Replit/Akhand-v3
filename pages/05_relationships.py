@@ -10,17 +10,22 @@ apply_custom_styling()
 
 def display_relationship_card(record):
     """Display a single relationship card with profile image and details"""
+    # Create image HTML only if photo_link exists
+    image_html = f"""
+        <div style='flex-shrink: 0; margin-right: 1rem;'>
+            <img src="{record.get('photo_link')}" 
+                 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;"
+                 alt="Profile">
+        </div>
+    """ if record.get('photo_link') else ""
+
     # Create a card container with proper styling
     st.markdown(f"""
     <div style='background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
         <div style='display: flex; align-items: start; margin-bottom: 1rem;'>
-            <div style='flex-shrink: 0; margin-right: 1rem;'>
-                <img src="https://placekitten.com/100/100" 
-                     style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;"
-                     alt="Profile">
-            </div>
+            {image_html}
             <div style='flex-grow: 1;'>
-                <h3 style='margin: 0; color: #1f2937; margin-bottom: 1rem;'>{record['নাম']}</h3>
+                <h3 style='margin: 0; color: #1f2937; margin-bottom: 1rem;'>{record.get('নাম', '')}</h3>
                 <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;'>
                     <div>
                         <p style='margin: 0.5rem 0;'><strong>ক্রমিক নং:</strong> {record.get('ক্রমিক_নং', '')}</p>
