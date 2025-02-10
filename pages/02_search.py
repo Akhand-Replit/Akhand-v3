@@ -69,6 +69,7 @@ def search_page():
 
         with col1:
             si_number = st.text_input("ক্রমিক নং")
+            voter_no = st.text_input("ভোটার নং")
             name = st.text_input("নাম")
             fathers_name = st.text_input("পিতার নং")
             mothers_name = st.text_input("মাতার নাম")
@@ -91,6 +92,7 @@ def search_page():
                 if search_button:
                     search_criteria = {
                         'ক্রমিক_নং': si_number,
+                        'ভোটার_নং': voter_no,
                         'নাম': name,
                         'পিতার_নাম': fathers_name,
                         'মাতার_নাম': mothers_name,
