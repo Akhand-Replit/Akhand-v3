@@ -60,6 +60,26 @@ def relationship_stats_page():
     with col2:
         st.metric("নিষ্পত্তি", processed_records)
 
+    # Add pie chart for overall distribution
+    st.subheader("🥧 সম্পর্কের ধরণ অনুযায়ী বিতরণ")
+    fig_pie = px.pie(
+        df_stats,
+        values='count',
+        names='relationship_status',
+        color='relationship_status',
+        color_discrete_map={
+            'Regular': '#98D8C6',     # Mint color
+            'Connected': '#FFF59D',   # Light yellow
+            'Friend': '#2ecc71',      # Green
+            'Enemy': '#e74c3c'        # Red
+        }
+    )
+    fig_pie.update_layout(
+        showlegend=True,
+        plot_bgcolor='white'
+    )
+    st.plotly_chart(fig_pie, use_container_width=True)
+
     # Display bar chart for batch-wise distribution
     batch_stats = get_batch_relationship_stats(db)
     if batch_stats:
