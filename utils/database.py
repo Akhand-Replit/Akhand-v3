@@ -19,7 +19,23 @@ class Database:
 
     def create_tables(self):
         with self.conn.cursor() as cur:
-            # Create batches table
+            # Add new columns to records table
+            cur.execute("""
+                DO $$ 
+                BEGIN 
+                    BEGIN
+                        ALTER TABLE records 
+                        ADD COLUMN phone_number VARCHAR(50),
+                        ADD COLUMN facebook_link TEXT,
+                        ADD COLUMN photo_link TEXT,
+                        ADD COLUMN description TEXT;
+                    EXCEPTION 
+                        WHEN duplicate_column THEN NULL;
+                    END;
+                END $$;
+            """)
+
+            # Create tables if they don't exist
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS batches (
                     id SERIAL PRIMARY KEY,
@@ -28,7 +44,6 @@ class Database:
                 )
             """)
 
-            # Create records table with relationship_status
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS records (
                     id SERIAL PRIMARY KEY,
@@ -42,6 +57,10 @@ class Database:
                     পেশা TEXT,
                     জন্ম_তারিখ VARCHAR(100),
                     ঠিকানা TEXT,
+                    phone_number VARCHAR(50),
+                    facebook_link TEXT,
+                    photo_link TEXT,
+                    description TEXT,
                     relationship_status VARCHAR(10) DEFAULT 'Regular',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
@@ -94,14 +113,17 @@ class Database:
                 INSERT INTO records (
                     batch_id, file_name, ক্রমিক_নং, নাম, ভোটার_নং,
                     পিতার_নাম, মাতার_নাম, পেশা, জন্ম_তারিখ, ঠিকানা,
+                    phone_number, facebook_link, photo_link, description,
                     relationship_status
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 batch_id, file_name,
                 record_data.get('ক্রমিক_নং'), record_data.get('নাম'),
                 record_data.get('ভোটার_নং'), record_data.get('পিতার_নাম'),
                 record_data.get('মাতার_নাম'), record_data.get('পেশা'),
                 record_data.get('জন্ম_তারিখ'), record_data.get('ঠিকানা'),
+                record_data.get('phone_number'), record_data.get('facebook_link'),
+                record_data.get('photo_link'), record_data.get('description'),
                 'Regular'
             ))
             self.conn.commit()
@@ -119,10 +141,13 @@ class Database:
                     পেশা = %s,
                     ঠিকানা = %s,
                     জন্ম_তারিখ = %s,
+                    phone_number = %s,
+                    facebook_link = %s,
+                    photo_link = %s,
+                    description = %s,
                     relationship_status = %s
                 WHERE id = %s
             """
-            # Ensure all values are strings or None
             values = (
                 str(updated_data.get('ক্রমিক_নং', '')),
                 str(updated_data.get('নাম', '')),
@@ -132,6 +157,10 @@ class Database:
                 str(updated_data.get('পেশা', '')),
                 str(updated_data.get('ঠিকানা', '')),
                 str(updated_data.get('জন্ম_তারিখ', '')),
+                str(updated_data.get('phone_number', '')),
+                str(updated_data.get('facebook_link', '')),
+                str(updated_data.get('photo_link', '')),
+                str(updated_data.get('description', '')),
                 str(updated_data.get('relationship_status', 'Regular')),
                 record_id
             )

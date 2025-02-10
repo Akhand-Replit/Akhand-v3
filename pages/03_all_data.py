@@ -97,7 +97,9 @@ def all_data_page():
             edited_df = st.data_editor(
                 df[[
                     'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
-                    'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
+                    'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 
+                    'phone_number', 'facebook_link', 'photo_link', 'description',
+                    'relationship_status'
                 ]],
                 column_config={
                     'ক্রমিক_নং': st.column_config.TextColumn('ক্রমিক নং'),
@@ -108,6 +110,10 @@ def all_data_page():
                     'পেশা': st.column_config.TextColumn('পেশা'),
                     'ঠিকানা': st.column_config.TextColumn('ঠিকানা'),
                     'জন্ম_তারিখ': st.column_config.TextColumn('জন্ম তারিখ'),
+                    'phone_number': st.column_config.TextColumn('ফোন নম্বর'),
+                    'facebook_link': st.column_config.LinkColumn('ফেসবুক লিঙ্ক'),
+                    'photo_link': st.column_config.ImageColumn('ছবি লিঙ্ক'),
+                    'description': st.column_config.TextColumn('বিবরণ'),
                     'relationship_status': st.column_config.SelectboxColumn(
                         'সম্পর্কের ধরণ',
                         options=['Regular', 'Friend', 'Enemy'],
@@ -126,13 +132,14 @@ def all_data_page():
                     # Compare and update changed records
                     changes = edited_df.compare(df[[
                         'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
-                        'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
+                        'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ',
+                        'phone_number', 'facebook_link', 'photo_link', 'description',
+                        'relationship_status'
                     ]])
 
                     if not changes.empty:
                         for idx in changes.index:
-                            record_id = int(df.iloc[idx]['id'])  # Convert to native Python int
-                            # Convert DataFrame row to dictionary with proper type conversion
+                            record_id = int(df.iloc[idx]['id'])
                             row_data = edited_df.iloc[idx]
                             updated_data = {
                                 'ক্রমিক_নং': str(row_data['ক্রমিক_নং']) if pd.notnull(row_data['ক্রমিক_নং']) else '',
@@ -143,8 +150,11 @@ def all_data_page():
                                 'পেশা': str(row_data['পেশা']) if pd.notnull(row_data['পেশা']) else '',
                                 'ঠিকানা': str(row_data['ঠিকানা']) if pd.notnull(row_data['ঠিকানা']) else '',
                                 'জন্ম_তারিখ': str(row_data['জন্ম_তারিখ']) if pd.notnull(row_data['জন্ম_তারিখ']) else '',
+                                'phone_number': str(row_data['phone_number']) if pd.notnull(row_data['phone_number']) else '',
+                                'facebook_link': str(row_data['facebook_link']) if pd.notnull(row_data['facebook_link']) else '',
+                                'photo_link': str(row_data['photo_link']) if pd.notnull(row_data['photo_link']) else '',
+                                'description': str(row_data['description']) if pd.notnull(row_data['description']) else '',
                                 'relationship_status': str(row_data['relationship_status']) if pd.notnull(row_data['relationship_status']) else ''
-
                             }
                             db.update_record(record_id, updated_data)
 
