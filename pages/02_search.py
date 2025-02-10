@@ -87,7 +87,7 @@ def search_page():
                                 )
                             with col2:
                                 if new_status != current_status:
-                                    if st.button("আপডেট করুন", key=f"update_{result['id']}", type="primary"):
+                                    if st.button("পরিবর্তনগুলি সংরক্ষণ করুন", key=f"update_{result['id']}", type="primary"):
                                         try:
                                             updated_data = {
                                                 'ক্রমিক_নং': result['ক্রমিক_নং'],
@@ -102,7 +102,7 @@ def search_page():
                                             }
                                             db.update_record(result['id'], updated_data)
                                             st.success("✅ সম্পর্কের ধরণ আপডেট করা হয়েছে!")
-                                            st.rerun()
+                                            
                                         except Exception as e:
                                             logger.error(f"Update error: {str(e)}")
                                             st.error(f"আপডেট করতে সমস্যা হয়েছে: {str(e)}")
