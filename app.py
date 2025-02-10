@@ -29,23 +29,39 @@ apply_custom_styling()
 # Initialize authentication
 init_auth()
 
-def display_data_card(data):
+def display_profile_card(data):
     with st.container():
+        # Profile section with image and basic info
+        cols = st.columns([1, 3])
+
+        with cols[0]:
+            # Profile image
+            st.image("https://placekitten.com/100/100", width=100)
+
+        with cols[1]:
+            st.markdown("### বিস্তৃতি")
+
+        # Main information grid
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("### বন্ধু তালিকা")
-            st.markdown(f"**ক্রমিক নং:** {data.get('serial_no', '')}")
-            st.markdown(f"**রেকর্ড নং:** {data.get('record_no', '')}")
-            st.markdown(f"**বিভাগের নাম:** {data.get('division_name', '')}")
-            st.markdown(f"**স্থানের নাম:** {data.get('location_name', '')}")
-            st.markdown(f"**ঠিকানা:** {data.get('address', '')}")
+            st.markdown(f"""
+            **ক্রমিক নং:** {data.get('serial_no', '')}\n
+            **রেকর্ড নং:** {data.get('record_no', '')}\n
+            **পিতার নাম:** {data.get('father_name', '')}\n
+            **মাতার নাম:** {data.get('mother_name', '')}\n
+            **পেশা:** {data.get('occupation', '')}\n
+            **ঠিকানা:** {data.get('address', '')}
+            """)
 
         with col2:
-            st.markdown("### যোগাযোগ")
-            st.markdown(f"**ফোন নাম্বার:** {data.get('phone', '')}")
-            if data.get('facebook'):
-                st.markdown(f"**ফেসবুক:** [{data.get('facebook', '')}]({data.get('facebook_url', '#')})")
+            st.markdown(f"""
+            **ফোন নাম্বার:** {data.get('phone', '')}\n
+            **ফেসবুক:**""")
+            if data.get('facebook_url'):
+                st.markdown(f"[{data.get('facebook_url', '')}]({data.get('facebook_url', '')})")
+            st.markdown("**বিবরণ:**")
+
 
 def main():
     # Show logout button if authenticated
@@ -61,16 +77,17 @@ def main():
 
         # Sample data for demonstration
         sample_data = {
-            'serial_no': '৫২৫',
-            'record_no': '৫৩০৬৫৫৯৯৯৯৮৮',
-            'division_name': 'সড়ক চট্ট হাই',
-            'location_name': 'লীলা স্বামী বর্ণন',
-            'address': 'কক্সবাজার, শ্রীপুর',
-            'phone': '',
-            'facebook': 'ফেসবুক'
+            'serial_no': '৫২০',
+            'record_no': '০০০০৬৫০৯৯৮৮৬',
+            'father_name': 'সাধারণিল',
+            'mother_name': 'মঞ্জুতাজ',
+            'occupation': 'পুলিশ',
+            'address': 'কাঠালী, শ্রীপুর, গাজীপুর',
+            'phone': '0544585',
+            'facebook_url': 'https://www.facebook.com/help/104002523024878/'
         }
 
-        display_data_card(sample_data)
+        display_profile_card(sample_data)
 
         st.markdown("""
         ### মূল মেনু
