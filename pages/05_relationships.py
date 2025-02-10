@@ -20,7 +20,7 @@ def display_relationship_card(record):
     """ if record.get('photo_link') else ""
 
     # Create a card container with proper styling
-    st.markdown(f"""
+    html = f"""
     <div style='background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
         <div style='display: flex; align-items: start; margin-bottom: 1rem;'>
             {image_html}
@@ -44,7 +44,10 @@ def display_relationship_card(record):
             </div>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """
+
+    # Render the HTML using Streamlit's markdown
+    st.markdown(html, unsafe_allow_html=True)
 
     # Add action button below the card
     if st.button(
