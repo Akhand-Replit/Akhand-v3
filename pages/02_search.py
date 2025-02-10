@@ -88,9 +88,24 @@ def search_page():
                             with col2:
                                 if new_status != current_status:
                                     if st.button("আপডেট করুন", key=f"update_{result['id']}", type="primary"):
-                                        db.update_relationship_status(result['id'], new_status)
-                                        st.success("✅ সম্পর্কের ধরণ আপডেট করা হয়েছে!")
-                                        st.rerun()
+                                        try:
+                                            updated_data = {
+                                                'ক্রমিক_নং': result['ক্রমিক_নং'],
+                                                'নাম': result['নাম'],
+                                                'ভোটার_নং': result['ভোটার_নং'],
+                                                'পিতার_নাম': result['পিতার_নাম'],
+                                                'মাতার_নাম': result['মাতার_নাম'],
+                                                'পেশা': result['পেশা'],
+                                                'ঠিকানা': result['ঠিকানা'],
+                                                'জন্ম_তারিখ': result.get('জন্ম_তারিখ', ''),
+                                                'relationship_status': new_status
+                                            }
+                                            db.update_record(result['id'], updated_data)
+                                            st.success("✅ সম্পর্কের ধরণ আপডেট করা হয়েছে!")
+                                            st.rerun()
+                                        except Exception as e:
+                                            logger.error(f"Update error: {str(e)}")
+                                            st.error(f"আপডেট করতে সমস্যা হয়েছে: {str(e)}")
 
                 else:
                     st.info("কোন ফলাফল পাওয়া যায়নি")
