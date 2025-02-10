@@ -24,47 +24,44 @@ def display_relationship_card(record, db):
     with st.container():
         st.markdown("""
         <style>
-        .record-location {
-            color: #666;
-            font-style: italic;
-            margin-top: 5px;
+        .result-card {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: #f8f9fa;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
         }
         </style>
         """, unsafe_allow_html=True)
 
-        # Profile section with image and basic info
-        cols = st.columns([1, 3])
+        with st.container():
+            st.markdown('<div class="result-card">', unsafe_allow_html=True)
 
-        with cols[0]:
-            # Profile image
-            if record.get('photo_link'):
-                st.image(record['photo_link'], width=100)
+            # Header with name and ID
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.markdown(f"### {record['নাম']}")
+            with col2:
+                st.markdown(f"**ক্রমিক নং:** {record['ক্রমিক_নং']}")
 
-        with cols[1]:
-            st.markdown(f"### {record.get('নাম', '')}")
-            # Add location information right under the name
-            location = get_record_location(db, record)
-            st.markdown(f'<p class="record-location">[{location}]</p>', unsafe_allow_html=True)
+            # Location info with batch name and file name
+            st.markdown(f"📍 **স্থান:** {get_record_location(db, record)}")
 
-        # Main information grid
-        col1, col2 = st.columns(2)
+            # Main details
+            col3, col4 = st.columns(2)
+            with col3:
+                st.markdown(f"**ভোটার নং:** {record['ভোটার_নং']}")
+                st.markdown(f"**পিতার নাম:** {record['পিতার_নাম']}")
+                st.markdown(f"**মাতার নাম:** {record['মাতার_নাম']}")
+            with col4:
+                st.markdown(f"**পেশা:** {record['পেশা']}")
+                st.markdown(f"**ঠিকানা:** {record['ঠিকানা']}")
+                st.markdown(f"**জন্ম তারিখ:** {record['জন্ম_তারিখ']}")
 
-        with col1:
-            st.markdown(f"""
-            **ক্রমিক নং:** {record.get('ক্রমিক_নং', '')}\n
-            **রেকর্ড নং:** {record.get('ভোটার_নং', '')}\n
-            **পিতার নাম:** {record.get('পিতার_নাম', '')}\n
-            **মাতার নাম:** {record.get('মাতার_নাম', '')}\n
-            **পেশা:** {record.get('পেশা', '')}\n
-            **ঠিকানা:** {record.get('ঠিকানা', '')}
-            """)
+            # Relationship status
+            st.markdown(f"**সম্পর্কের ধরণ:** {record['relationship_status']}")
 
-        with col2:
-            st.markdown(f"""
-            **ফোন নাম্বার:** {record.get('phone_number', '')}\n
-            **ফেসবুক:**""")
-            if record.get('facebook_link'):
-                st.markdown(f"[{record.get('facebook_link', '')}]({record.get('facebook_link', '')})")
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # Add action button below the card
     if st.button(
