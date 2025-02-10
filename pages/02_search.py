@@ -69,15 +69,16 @@ def search_page():
 
         with col1:
             si_number = st.text_input("ক্রমিক নং")
-            voter_no = st.text_input("ভোটার নং")
             name = st.text_input("নাম")
-            fathers_name = st.text_input("পিতার নং")
             mothers_name = st.text_input("মাতার নাম")
+            date_of_birth = st.text_input("জন্ম তারিখ")
 
         with col2:
+            voter_no = st.text_input("ভোটার নং")
+            fathers_name = st.text_input("পিতার নং")
             occupation = st.text_input("পেশা")
             address = st.text_input("ঠিকানা")
-            date_of_birth = st.text_input("জন্ম তারিখ")
+            
 
     # Search buttons
     search_button = st.button("অনুসন্ধান করুন", type="primary", use_container_width=True)

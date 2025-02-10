@@ -8,7 +8,18 @@ from collections import defaultdict
 logger = logging.getLogger(__name__)
 apply_custom_styling()
 
-def display_relationship_card(record):
+def get_record_location(db, record):
+    """Get batch and file information for a record"""
+    batch_info = db.get_batch_by_id(record['batch_id'])
+    file_info = db.get_file_by_id(record.get('file_id'))
+
+    location = batch_info['name'] if batch_info else 'Unknown Batch'
+    if file_info and file_info.get('name'):
+        location += f" / {file_info['name']}"
+
+    return location
+
+def display_relationship_card(record, db):
     """Display a single relationship card with profile image and details"""
     with st.container():
         # Profile section with image and basic info
@@ -41,7 +52,10 @@ def display_relationship_card(record):
             **ফেসবুক:**""")
             if record.get('facebook_link'):
                 st.markdown(f"[{record.get('facebook_link', '')}]({record.get('facebook_link', '')})")
-            st.markdown("**বিবরণ:**")
+
+            # Add location information under বিবরণ
+            location = get_record_location(db, record)
+            st.markdown(f"**বিবরণ:** {location}")
 
     # Add action button below the card
     if st.button(
@@ -50,7 +64,6 @@ def display_relationship_card(record):
         type="secondary",
         use_container_width=True
     ):
-        db = Database()
         db.update_relationship_status(record['id'], 'Regular')
         st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
         st.rerun()
@@ -97,9 +110,9 @@ def relationships_page():
         # Show total count
         st.write(f"মোট: {len(records)}")
 
-        # Display each record in a card
+        # Display each record in a card format
         for record in records:
-            display_relationship_card(record)
+            display_relationship_card(record, db)
 
     with tab1:
         st.subheader("🤝 বন্ধু তালিকা")

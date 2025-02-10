@@ -3,8 +3,6 @@ import sys
 import streamlit as st
 import logging
 import pandas as pd
-from psycopg2 import sql
-import psycopg2
 
 # Add the current directory to Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,66 +29,14 @@ apply_custom_styling()
 # Initialize authentication
 init_auth()
 
-def get_db_connection():
-    try:
-        conn = psycopg2.connect(os.environ['DATABASE_URL'])
-        return conn
-    except Exception as e:
-        logger.error(f"Database connection error: {e}")
-        return None
-
 def get_batch_statistics():
-    conn = get_db_connection()
-    if not conn:
-        return {
-            "total_batches": 0,
-            "total_files": 0,
-            "recent_batch": "কোন ব্যাচ নেই",
-            "processed_data": 0
-        }
-
-    try:
-        cur = conn.cursor()
-
-        # Get total number of batches
-        cur.execute("SELECT COUNT(DISTINCT batch_id) FROM data_batches")
-        total_batches = cur.fetchone()[0] or 0
-
-        # Get total number of files
-        cur.execute("SELECT COUNT(*) FROM data_files")
-        total_files = cur.fetchone()[0] or 0
-
-        # Get most recent batch
-        cur.execute("""
-            SELECT batch_name 
-            FROM data_batches 
-            ORDER BY created_at DESC 
-            LIMIT 1
-        """)
-        recent_batch = cur.fetchone()
-        recent_batch = recent_batch[0] if recent_batch else "কোন ব্যাচ নেই"
-
-        # Get total processed records
-        cur.execute("SELECT COUNT(*) FROM processed_data")
-        processed_data = cur.fetchone()[0] or 0
-
-        return {
-            "total_batches": total_batches,
-            "total_files": total_files,
-            "recent_batch": recent_batch,
-            "processed_data": processed_data
-        }
-    except Exception as e:
-        logger.error(f"Error fetching statistics: {e}")
-        return {
-            "total_batches": 0,
-            "total_files": 0,
-            "recent_batch": "ত্রুটি",
-            "processed_data": 0
-        }
-    finally:
-        if conn:
-            conn.close()
+    # Placeholder function - replace with actual database query
+    return {
+        "total_batches": 5,
+        "total_files": 1250,
+        "recent_batch": "ব্যাচ-২০২৫",
+        "processed_data": 1150
+    }
 
 def display_profile_card(data):
     with st.container():
@@ -146,20 +92,7 @@ def main():
         এটি মাল্টিলিঙ্গুয়াল সম্পর্ক ট্র্যাকিং, উন্নত সার্চ এবং ফিল্টারিং সুবিধা প্রদান করে।
         """)
 
-        # Dashboard Statistics
-        st.markdown("### ড্যাশবোর্ড")
-        stats = get_batch_statistics()
-
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("মোট ব্যাচ", f"{stats['total_batches']}")
-        with col2:
-            st.metric("মোট ফাইল", f"{stats['total_files']}")
-        with col3:
-            st.metric("সর্বশেষ ব্যাচ", stats['recent_batch'])
-        with col4:
-            st.metric("প্রক্রিয়াকৃত ডাটা", f"{stats['processed_data']}")
-
+       
         # User Guide
         st.markdown("""
         ### ব্যবহার নির্দেশিকা
@@ -180,6 +113,7 @@ def main():
         - স্ট্যাটিসটিক্স দেখুন
         """)
 
+   
 
         # Main Menu
         st.markdown("### মূল মেনু")
