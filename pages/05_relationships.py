@@ -9,25 +9,33 @@ logger = logging.getLogger(__name__)
 apply_custom_styling()
 
 def display_relationship_card(record):
+    """Display a single relationship card with profile image and details"""
     # Create a card container with proper styling
     st.markdown(f"""
     <div style='background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
-        <div style='margin-bottom: 1rem;'>
-            <h3 style='margin: 0; color: #1f2937;'>{record['নাম']}</h3>
-        </div>
-        <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;'>
-            <div>
-                <p><strong>ক্রমিক নং:</strong> {record.get('ক্রমিক_নং', '')}</p>
-                <p><strong>রেকর্ড নং:</strong> {record.get('ভোটার_নং', '')}</p>
-                <p><strong>পিতার নাম:</strong> {record.get('পিতার_নাম', '')}</p>
-                <p><strong>মাতার নাম:</strong> {record.get('মাতার_নাম', '')}</p>
-                <p><strong>পেশা:</strong> {record.get('পেশা', '')}</p>
-                <p><strong>ঠিকানা:</strong> {record.get('ঠিকানা', '')}</p>
+        <div style='display: flex; align-items: start; margin-bottom: 1rem;'>
+            <div style='flex-shrink: 0; margin-right: 1rem;'>
+                <img src="https://placekitten.com/100/100" 
+                     style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;"
+                     alt="Profile">
             </div>
-            <div>
-                <p><strong>ফোন নম্বর:</strong> {record.get('phone_number', '')}</p>
-                <p><strong>ফেসবুক:</strong> {record.get('facebook_link') and f'<a href="{record["facebook_link"]}" target="_blank">{record["facebook_link"]}</a>' or ''}</p>
-                <p><strong>বিবরণ:</strong> {record.get('description', '')}</p>
+            <div style='flex-grow: 1;'>
+                <h3 style='margin: 0; color: #1f2937; margin-bottom: 1rem;'>{record['নাম']}</h3>
+                <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;'>
+                    <div>
+                        <p style='margin: 0.5rem 0;'><strong>ক্রমিক নং:</strong> {record.get('ক্রমিক_নং', '')}</p>
+                        <p style='margin: 0.5rem 0;'><strong>রেকর্ড নং:</strong> {record.get('ভোটার_নং', '')}</p>
+                        <p style='margin: 0.5rem 0;'><strong>পিতার নাম:</strong> {record.get('পিতার_নাম', '')}</p>
+                        <p style='margin: 0.5rem 0;'><strong>মাতার নাম:</strong> {record.get('মাতার_নাম', '')}</p>
+                        <p style='margin: 0.5rem 0;'><strong>পেশা:</strong> {record.get('পেশা', '')}</p>
+                        <p style='margin: 0.5rem 0;'><strong>ঠিকানা:</strong> {record.get('ঠিকানা', '')}</p>
+                    </div>
+                    <div>
+                        <p style='margin: 0.5rem 0;'><strong>ফোন নম্বর:</strong> {record.get('phone_number', '')}</p>
+                        <p style='margin: 0.5rem 0;'><strong>ফেসবুক:</strong> {record.get('facebook_link') and f'<a href="{record["facebook_link"]}" target="_blank">{record["facebook_link"]}</a>' or ''}</p>
+                        <p style='margin: 0.5rem 0;'><strong>বিবরণ:</strong> {record.get('description', '')}</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -87,7 +95,7 @@ def relationships_page():
         # Show total count
         st.write(f"মোট: {len(records)}")
 
-        # Group records by batch and file
+        # Display each record in a card
         for record in records:
             display_relationship_card(record)
 
