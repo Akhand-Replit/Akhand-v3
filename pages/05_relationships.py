@@ -9,35 +9,41 @@ logger = logging.getLogger(__name__)
 apply_custom_styling()
 
 def display_relationship_card(record):
-    # Create a flex container for name and photo
-    photo_html = f"""<img src="{record.get('photo_link', '')}" 
-                     style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; margin-right: 1rem;"
-                     onerror="this.style.display='none'"
-                     alt="{record['নাম']} এর ছবি">""" if record.get('photo_link') else ""
-
+    # Create a card container with proper styling
     st.markdown(f"""
-    <div style='background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
-        <div style='display: flex; align-items: center; margin-bottom: 1rem;'>
-            {photo_html}
-            <h3 style='margin: 0;'>{record['নাম']}</h3>
+    <div style='background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+        <div style='margin-bottom: 1rem;'>
+            <h3 style='margin: 0; color: #1f2937;'>{record['নাম']}</h3>
         </div>
         <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;'>
             <div>
-                <p><strong>ক্রমিক নং:</strong> {record['ক্রমিক_নং']}</p>
-                <p><strong>ভোটার নং:</strong> {record['ভোটার_নং']}</p>
-                <p><strong>পিতার নাম:</strong> {record['পিতার_নাম']}</p>
-                <p><strong>মাতার নাম:</strong> {record['মাতার_নাম']}</p>
-                <p><strong>পেশা:</strong> {record['পেশা']}</p>
-                <p><strong>ঠিকানা:</strong> {record['ঠিকানা']}</p>
+                <p><strong>ক্রমিক নং:</strong> {record.get('ক্রমিক_নং', '')}</p>
+                <p><strong>রেকর্ড নং:</strong> {record.get('ভোটার_নং', '')}</p>
+                <p><strong>পিতার নাম:</strong> {record.get('পিতার_নাম', '')}</p>
+                <p><strong>মাতার নাম:</strong> {record.get('মাতার_নাম', '')}</p>
+                <p><strong>পেশা:</strong> {record.get('পেশা', '')}</p>
+                <p><strong>ঠিকানা:</strong> {record.get('ঠিকানা', '')}</p>
             </div>
             <div>
                 <p><strong>ফোন নম্বর:</strong> {record.get('phone_number', '')}</p>
-                <p><strong>ফেসবুক:</strong> <a href="{record.get('facebook_link', '#')}" target="_blank">{record.get('facebook_link', '')}</a></p>
+                <p><strong>ফেসবুক:</strong> {record.get('facebook_link') and f'<a href="{record["facebook_link"]}" target="_blank">{record["facebook_link"]}</a>' or ''}</p>
                 <p><strong>বিবরণ:</strong> {record.get('description', '')}</p>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Add action button below the card
+    if st.button(
+        "🔄 Regular এ ফিরিয়ে নিন", 
+        key=f"remove_{record['id']}", 
+        type="secondary",
+        use_container_width=True
+    ):
+        db = Database()
+        db.update_relationship_status(record['id'], 'Regular')
+        st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
+        st.rerun()
 
 def relationships_page():
     if 'authenticated' not in st.session_state or not st.session_state.authenticated:
@@ -70,7 +76,6 @@ def relationships_page():
         if selected_batch == 'সব ব্যাচ':
             records = db.get_relationship_records(relationship_type)
         else:
-            # Get batch ID
             batch_id = next(batch['id'] for batch in batches if batch['name'] == selected_batch)
             records = [r for r in db.get_relationship_records(relationship_type) 
                       if r['batch_id'] == batch_id]
@@ -83,36 +88,8 @@ def relationships_page():
         st.write(f"মোট: {len(records)}")
 
         # Group records by batch and file
-        batch_file_groups = defaultdict(lambda: defaultdict(list))
         for record in records:
-            batch_file_groups[record['batch_name']][record['file_name']].append(record)
-
-        # Display in folder structure without nested expanders
-        for batch_name in sorted(batch_file_groups.keys()):
-            st.markdown(f"### 📁 ব্যাচ: {batch_name}")
-            files = batch_file_groups[batch_name]
-
-            for file_name in sorted(files.keys()):
-                st.markdown(f"#### 📄 ফাইল: {file_name}")
-                records = files[file_name]
-
-                # Add a visual separator
-                st.markdown("""<hr style="margin: 0.5rem 0; border: none; border-top: 1px solid #eee;">""", unsafe_allow_html=True)
-
-                for record in records:
-                    display_relationship_card(record)
-                    if st.button(
-                        "🔄 Regular এ ফিরিয়ে নিন", 
-                        key=f"remove_{relationship_type}_{record['id']}", 
-                        type="secondary",
-                        use_container_width=True
-                    ):
-                        db.update_relationship_status(record['id'], 'Regular')
-                        st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
-                        st.rerun()
-
-                # Add spacing between files
-                st.markdown("<br>", unsafe_allow_html=True)
+            display_relationship_card(record)
 
     with tab1:
         st.subheader("🤝 বন্ধু তালিকা")
