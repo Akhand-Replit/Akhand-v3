@@ -22,6 +22,16 @@ def get_record_location(db, record):
 def display_relationship_card(record, db):
     """Display a single relationship card with profile image and details"""
     with st.container():
+        st.markdown("""
+        <style>
+        .record-location {
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
         # Profile section with image and basic info
         cols = st.columns([1, 3])
 
@@ -32,6 +42,9 @@ def display_relationship_card(record, db):
 
         with cols[1]:
             st.markdown(f"### {record.get('নাম', '')}")
+            # Add location information right under the name
+            location = get_record_location(db, record)
+            st.markdown(f'<p class="record-location">[{location}]</p>', unsafe_allow_html=True)
 
         # Main information grid
         col1, col2 = st.columns(2)
@@ -52,10 +65,6 @@ def display_relationship_card(record, db):
             **ফেসবুক:**""")
             if record.get('facebook_link'):
                 st.markdown(f"[{record.get('facebook_link', '')}]({record.get('facebook_link', '')})")
-
-            # Add location information under বিবরণ
-            location = get_record_location(db, record)
-            st.markdown(f"**বিবরণ:** {location}")
 
     # Add action button below the card
     if st.button(
