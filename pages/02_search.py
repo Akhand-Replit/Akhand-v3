@@ -38,6 +38,10 @@ def search_page():
     with col4:
         show_all = st.button("সব দেখুন", type="secondary")
 
+    # Initialize session state for form submission
+    if 'form_submitted' not in st.session_state:
+        st.session_state.form_submitted = False
+
     if search_button or show_all:
         try:
             with st.spinner("অনুসন্ধান করা হচ্ছে..."):
@@ -60,74 +64,72 @@ def search_page():
                 if results:
                     st.success(f"{len(results)}টি ফলাফল পাওয়া গেছে")
 
-                    # Initialize session state for edited data if not exists
-                    if 'edited_data' not in st.session_state:
-                        st.session_state.edited_data = None
+                    # Store results in session state
+                    if 'search_results' not in st.session_state:
+                        st.session_state.search_results = results
 
                     # Convert results to DataFrame
                     df = pd.DataFrame(results)
 
-                    # Create editable dataframe
-                    edited_df = st.data_editor(
-                        df[[
-                            'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
-                            'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
-                        ]],
-                        column_config={
-                            'ক্রমিক_নং': st.column_config.TextColumn('ক্রমিক নং'),
-                            'নাম': st.column_config.TextColumn('নাম'),
-                            'ভোটার_নং': st.column_config.TextColumn('ভোটার নং'),
-                            'পিতার_নাম': st.column_config.TextColumn('পিতার নাম'),
-                            'মাতার_নাম': st.column_config.TextColumn('মাতার নাম'),
-                            'পেশা': st.column_config.TextColumn('পেশা'),
-                            'ঠিকানা': st.column_config.TextColumn('ঠিকানা'),
-                            'জন্ম_তারিখ': st.column_config.TextColumn('জন্ম তারিখ'),
-                            'relationship_status': st.column_config.SelectboxColumn(
-                                'সম্পর্কের ধরণ',
-                                options=['Regular', 'Friend', 'Enemy'],
-                                required=True,
-                                default='Regular'
-                            )
-                        },
-                        hide_index=True,
-                        use_container_width=True,
-                        key="search_data_editor"
-                    )
-
-                    st.session_state.edited_data = edited_df
-
-                    # Update button
-                    if st.button("পরিবর্তনগুলি সংরক্ষণ করুন", type="primary"):
-                        try:
-                            # Compare and update changed records
-                            changes = edited_df.compare(df[[
+                    # Create a form to prevent auto-refresh
+                    with st.form(key='edit_form'):
+                        edited_df = st.data_editor(
+                            df[[
                                 'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
                                 'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
-                            ]])
+                            ]],
+                            column_config={
+                                'ক্রমিক_নং': st.column_config.TextColumn('ক্রমিক নং'),
+                                'নাম': st.column_config.TextColumn('নাম'),
+                                'ভোটার_নং': st.column_config.TextColumn('ভোটার নং'),
+                                'পিতার_নাম': st.column_config.TextColumn('পিতার নাম'),
+                                'মাতার_নাম': st.column_config.TextColumn('মাতার নাম'),
+                                'পেশা': st.column_config.TextColumn('পেশা'),
+                                'ঠিকানা': st.column_config.TextColumn('ঠিকানা'),
+                                'জন্ম_তারিখ': st.column_config.TextColumn('জন্ম তারিখ'),
+                                'relationship_status': st.column_config.SelectboxColumn(
+                                    'সম্পর্কের ধরণ',
+                                    options=['Regular', 'Friend', 'Enemy'],
+                                    required=True,
+                                    default='Regular'
+                                )
+                            },
+                            hide_index=True,
+                            use_container_width=True,
+                            key="search_data_editor"
+                        )
 
-                            if not changes.empty:
-                                for idx in changes.index:
-                                    record_id = int(df.iloc[idx]['id'])  # Convert to native Python int
-                                    # Convert DataFrame row to dictionary with proper type conversion
-                                    row_data = edited_df.iloc[idx]
-                                    updated_data = {
-                                        'ক্রমিক_নং': str(row_data['ক্রমিক_নং']) if pd.notnull(row_data['ক্রমিক_নং']) else '',
-                                        'নাম': str(row_data['নাম']) if pd.notnull(row_data['নাম']) else '',
-                                        'ভোটার_নং': str(row_data['ভোটার_নং']) if pd.notnull(row_data['ভোটার_নং']) else '',
-                                        'পিতার_নাম': str(row_data['পিতার_নাম']) if pd.notnull(row_data['পিতার_নাম']) else '',
-                                        'মাতার_নাম': str(row_data['মাতার_নাম']) if pd.notnull(row_data['মাতার_নাম']) else '',
-                                        'পেশা': str(row_data['পেশা']) if pd.notnull(row_data['পেশা']) else '',
-                                        'ঠিকানা': str(row_data['ঠিকানা']) if pd.notnull(row_data['ঠিকানা']) else '',
-                                        'জন্ম_তারিখ': str(row_data['জন্ম_তারিখ']) if pd.notnull(row_data['জন্ম_তারিখ']) else '',
-                                        'relationship_status': str(row_data['relationship_status']) if pd.notnull(row_data['relationship_status']) else 'Regular'
-                                    }
-                                    db.update_record(record_id, updated_data)
+                        submit_button = st.form_submit_button("পরিবর্তনগুলি সংরক্ষণ করুন", type="primary")
 
-                                st.success("✅ পরিবর্তনগুলি সফলভাবে সংরক্ষিত হয়েছে!")
-                                st.rerun()
-                        except Exception as e:
-                            logger.error(f"Update error: {str(e)}")
-                            st.error(f"পরিবর্তন সংরক্ষণে সমস্যা হয়েছে: {str(e)}")
+                        if submit_button:
+                            try:
+                                changes = edited_df.compare(df[[
+                                    'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
+                                    'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
+                                ]])
+
+                                if not changes.empty:
+                                    for idx in changes.index:
+                                        record_id = int(df.iloc[idx]['id'])
+                                        row_data = edited_df.iloc[idx]
+                                        updated_data = {
+                                            'ক্রমিক_নং': str(row_data['ক্রমিক_নং']) if pd.notnull(row_data['ক্রমিক_নং']) else '',
+                                            'নাম': str(row_data['নাম']) if pd.notnull(row_data['নাম']) else '',
+                                            'ভোটার_নং': str(row_data['ভোটার_নং']) if pd.notnull(row_data['ভোটার_নং']) else '',
+                                            'পিতার_নাম': str(row_data['পিতার_নাম']) if pd.notnull(row_data['পিতার_নাম']) else '',
+                                            'মাতার_নাম': str(row_data['মাতার_নাম']) if pd.notnull(row_data['মাতার_নাম']) else '',
+                                            'পেশা': str(row_data['পেশা']) if pd.notnull(row_data['পেশা']) else '',
+                                            'ঠিকানা': str(row_data['ঠিকানা']) if pd.notnull(row_data['ঠিকানা']) else '',
+                                            'জন্ম_তারিখ': str(row_data['জন্ম_তারিখ']) if pd.notnull(row_data['জন্ম_তারিখ']) else '',
+                                            'relationship_status': str(row_data['relationship_status']) if pd.notnull(row_data['relationship_status']) else 'Regular'
+                                        }
+                                        db.update_record(record_id, updated_data)
+
+                                    st.success("✅ পরিবর্তনগুলি সফলভাবে সংরক্ষিত হয়েছে!")
+                                    st.session_state.form_submitted = True
+                            except Exception as e:
+                                logger.error(f"Update error: {str(e)}")
+                                st.error(f"পরিবর্তন সংরক্ষণে সমস্যা হয়েছে: {str(e)}")
 
                 else:
                     st.info("কোন ফলাফল পাওয়া যায়নি")
