@@ -9,27 +9,45 @@ import logging
 logger = logging.getLogger(__name__)
 apply_custom_styling()
 
-def get_relationship_stats(db):
+def get_relationship_stats(db, batch_id=None):
     """Get statistics for all relationship statuses"""
     with db.conn.cursor() as cur:
-        cur.execute("""
+        query = """
             SELECT relationship_status, COUNT(*) as count
             FROM records
+            """
+        if batch_id:
+            query += " WHERE batch_id = %s"
+            params = (batch_id,)
+        else:
+            params = ()
+
+        query += """
             GROUP BY relationship_status
             ORDER BY count DESC
-        """)
+        """
+        cur.execute(query, params)
         return cur.fetchall()
 
-def get_batch_relationship_stats(db):
+def get_batch_relationship_stats(db, selected_batch_id=None):
     """Get relationship statistics per batch"""
     with db.conn.cursor() as cur:
-        cur.execute("""
+        query = """
             SELECT b.name as batch_name, r.relationship_status, COUNT(*) as count
             FROM records r
             JOIN batches b ON r.batch_id = b.id
+            """
+        if selected_batch_id:
+            query += " WHERE r.batch_id = %s"
+            params = (selected_batch_id,)
+        else:
+            params = ()
+
+        query += """
             GROUP BY b.name, r.relationship_status
             ORDER BY b.name, r.relationship_status
-        """)
+        """
+        cur.execute(query, params)
         return cur.fetchall()
 
 def relationship_stats_page():
@@ -41,8 +59,27 @@ def relationship_stats_page():
 
     db = Database()
 
-    # Get overall statistics
-    stats = get_relationship_stats(db)
+    # Get all batches
+    batches = db.get_all_batches()
+
+    if not batches:
+        st.info("কোন ডাটা পাওয়া যায়নি")
+        return
+
+    # Batch selection
+    selected_batch = st.selectbox(
+        "ব্যাচ নির্বাচন করুন",
+        options=['সব ব্যাচ'] + [batch['name'] for batch in batches],
+        format_func=lambda x: f"ব্যাচ: {x}"
+    )
+
+    # Get selected batch ID
+    selected_batch_id = None
+    if selected_batch != 'সব ব্যাচ':
+        selected_batch_id = next(batch['id'] for batch in batches if batch['name'] == selected_batch)
+
+    # Get overall statistics based on selection
+    stats = get_relationship_stats(db, selected_batch_id)
     if not stats:
         st.info("কোন পরিসংখ্যান পাওয়া যায়নি")
         return
@@ -81,7 +118,7 @@ def relationship_stats_page():
     st.plotly_chart(fig_pie, use_container_width=True)
 
     # Display bar chart for batch-wise distribution
-    batch_stats = get_batch_relationship_stats(db)
+    batch_stats = get_batch_relationship_stats(db, selected_batch_id)
     if batch_stats:
         st.subheader("📊 ব্যাচ অনুযায়ী সম্পর্কের বিতরণ")
         df_batch_stats = pd.DataFrame(batch_stats, columns=['batch_name', 'relationship_status', 'count'])
