@@ -44,24 +44,34 @@ def relationships_page():
         for record in records:
             batch_file_groups[record['batch_name']][record['file_name']].append(record)
 
-        # Display in folder structure
+        # Display in folder structure without nested expanders
         for batch_name in sorted(batch_file_groups.keys()):
-            with st.expander(f"📁 ব্যাচ: {batch_name}", expanded=True):
-                files = batch_file_groups[batch_name]
-                for file_name in sorted(files.keys()):
-                    with st.expander(f"📄 ফাইল: {file_name}", expanded=True):
-                        records = files[file_name]
-                        for record in records:
-                            col1, col2 = st.columns([5, 1])
-                            with col1:
-                                display_relationship_card(record)
-                            with col2:
-                                if st.button("🔄 Regular এ ফিরিয়ে নিন", 
-                                           key=f"remove_{relationship_type}_{record['id']}", 
-                                           type="secondary"):
-                                    db.update_relationship_status(record['id'], 'Regular')
-                                    st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
-                                    st.rerun()
+            st.markdown(f"### 📁 ব্যাচ: {batch_name}")
+            files = batch_file_groups[batch_name]
+
+            for file_name in sorted(files.keys()):
+                st.markdown(f"#### 📄 ফাইল: {file_name}")
+                records = files[file_name]
+
+                # Add a visual separator
+                st.markdown("""<hr style="margin: 0.5rem 0; border: none; border-top: 1px solid #eee;">""", unsafe_allow_html=True)
+
+                for record in records:
+                    col1, col2 = st.columns([5, 1])
+                    with col1:
+                        display_relationship_card(record)
+                    with col2:
+                        if st.button(
+                            "🔄 Regular এ ফিরিয়ে নিন", 
+                            key=f"remove_{relationship_type}_{record['id']}", 
+                            type="secondary"
+                        ):
+                            db.update_relationship_status(record['id'], 'Regular')
+                            st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
+                            st.rerun()
+
+                # Add spacing between files
+                st.markdown("<br>", unsafe_allow_html=True)
 
     with tab1:
         st.subheader("🤝 বন্ধু তালিকা")
