@@ -71,30 +71,25 @@ def search_page():
                                 <p><strong>পেশা:</strong> {result['পেশা']}</p>
                                 <p><strong>ঠিকানা:</strong> {result['ঠিকানা']}</p>
                                 <p><strong>ফাইল:</strong> {result['batch_name']}/{result['file_name']}</p>
-                                <p><strong>সম্পর্কের ধরণ:</strong> {result.get('relationship_status', 'Regular')}</p>
                             </div>
                             """, unsafe_allow_html=True)
 
-                            # Relationship status buttons
-                            col1, col2, col3 = st.columns(3)
-
+                            # Relationship status dropdown and update button
+                            col1, col2 = st.columns([3, 1])
                             with col1:
-                                if st.button("🤝 বন্ধু", key=f"friend_{result['id']}", type="primary"):
-                                    db.update_relationship_status(result['id'], 'Friend')
-                                    st.success("✅ বন্ধু হিসেবে যোগ করা হয়েছে!")
-                                    st.rerun()
-
+                                current_status = result.get('relationship_status', 'Regular')
+                                new_status = st.selectbox(
+                                    "সম্পর্কের ধরণ",
+                                    options=['Regular', 'Friend', 'Enemy'],
+                                    key=f"status_{result['id']}",
+                                    index=['Regular', 'Friend', 'Enemy'].index(current_status)
+                                )
                             with col2:
-                                if st.button("⚔️ শত্রু", key=f"enemy_{result['id']}", type="secondary"):
-                                    db.update_relationship_status(result['id'], 'Enemy')
-                                    st.success("✅ শত্রু হিসেবে যোগ করা হয়েছে!")
-                                    st.rerun()
-
-                            with col3:
-                                if st.button("🔄 Regular", key=f"regular_{result['id']}", type="secondary"):
-                                    db.update_relationship_status(result['id'], 'Regular')
-                                    st.success("✅ Regular হিসেবে যোগ করা হয়েছে!")
-                                    st.rerun()
+                                if new_status != current_status:
+                                    if st.button("আপডেট করুন", key=f"update_{result['id']}", type="primary"):
+                                        db.update_relationship_status(result['id'], new_status)
+                                        st.success("✅ সম্পর্কের ধরণ আপডেট করা হয়েছে!")
+                                        st.rerun()
 
                 else:
                     st.info("কোন ফলাফল পাওয়া যায়নি")
