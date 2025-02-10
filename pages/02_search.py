@@ -80,31 +80,24 @@ def search_page():
             date_of_birth = st.text_input("জন্ম তারিখ")
 
     # Search buttons
-    col3, col4 = st.columns([4, 1])
-    with col3:
-        search_button = st.button("অনুসন্ধান করুন", type="primary")
-    with col4:
-        show_all = st.button("সব দেখুন", type="secondary")
+    search_button = st.button("অনুসন্ধান করুন", type="primary", use_container_width=True)
 
-    if search_button or show_all:
+    if search_button:
         try:
             with st.spinner("অনুসন্ধান করা হচ্ছে..."):
-                if search_button:
-                    search_criteria = {
-                        'ক্রমিক_নং': si_number,
-                        'ভোটার_নং': voter_no,
-                        'নাম': name,
-                        'পিতার_নাম': fathers_name,
-                        'মাতার_নাম': mothers_name,
-                        'পেশা': occupation,
-                        'ঠিকানা': address,
-                        'জন্ম_তারিখ': date_of_birth
-                    }
-                    # Remove empty criteria
-                    search_criteria = {k: v for k, v in search_criteria.items() if v}
-                    results = db.search_records_advanced(search_criteria)
-                else:
-                    results = db.get_batch_records(None)
+                search_criteria = {
+                    'ক্রমিক_নং': si_number,
+                    'ভোটার_নং': voter_no,
+                    'নাম': name,
+                    'পিতার_নাম': fathers_name,
+                    'মাতার_নাম': mothers_name,
+                    'পেশা': occupation,
+                    'ঠিকানা': address,
+                    'জন্ম_তারিখ': date_of_birth
+                }
+                # Remove empty criteria
+                search_criteria = {k: v for k, v in search_criteria.items() if v}
+                results = db.search_records_advanced(search_criteria)
 
                 if results:
                     st.success(f"{len(results)}টি ফলাফল পাওয়া গেছে")
