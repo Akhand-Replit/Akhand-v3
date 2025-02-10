@@ -3,11 +3,11 @@ import streamlit as st
 def apply_custom_styling():
     st.markdown("""
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap');
         
         /* Global font settings */
         * {
-            font-family: 'Noto Sans Bengali', sans-serif;
+            font-family: 'Tiro Bangla', sans-serif;
         }
         
         /* Header styling */

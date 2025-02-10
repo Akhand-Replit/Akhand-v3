@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 # Page config
 st.set_page_config(
-    page_title="ডাটা ম্যানেজমেন্ট সিস্টেম",
+    page_title="Akhand Data",
     page_icon="📊",
     layout="wide"
 )
@@ -83,7 +83,7 @@ def main():
                 st.rerun()
 
         with col1:
-            st.title("ডাটা ম্যানেজমেন্ট সিস্টেম")
+            st.title("Akhand Data")
 
         # Description section
         st.markdown("""

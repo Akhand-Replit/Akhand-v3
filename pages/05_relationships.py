@@ -46,11 +46,16 @@ def display_relationship_card(record, db):
         with st.container():
             st.markdown('<div class="result-card">', unsafe_allow_html=True)
 
-            # Header with name and ID
-            col1, col2 = st.columns([3, 1])
-            with col1:
+            # Profile section with image and basic info
+            cols = st.columns([1, 3])
+
+            with cols[0]:
+                # Profile image
+                if record.get('photo_link'):
+                    st.image(record['photo_link'], width=100)
+
+            with cols[1]:
                 st.markdown(f"### {record['নাম']}")
-            with col2:
                 st.markdown(f"**ক্রমিক নং:** {record['ক্রমিক_নং']}")
 
             # Location info with both batch name and file name
@@ -66,6 +71,15 @@ def display_relationship_card(record, db):
                 st.markdown(f"**পেশা:** {record['পেশা']}")
                 st.markdown(f"**ঠিকানা:** {record['ঠিকানা']}")
                 st.markdown(f"**জন্ম তারিখ:** {record['জন্ম_তারিখ']}")
+
+            # Additional contact information
+            st.markdown(f"**ফোন নাম্বার:** {record.get('phone_number', '')}")
+            st.markdown("**ফেসবুক:**")
+            if record.get('facebook_link'):
+                st.markdown(f"[{record.get('facebook_link', '')}]({record.get('facebook_link', '')})")
+
+            # Description
+            st.markdown(f"**বিবরণ:** {record.get('description', '')}")
 
             # Relationship status
             st.markdown(f"**সম্পর্কের ধরণ:** {record['relationship_status']}")
