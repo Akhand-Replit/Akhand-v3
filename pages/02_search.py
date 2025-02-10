@@ -1,8 +1,8 @@
 import streamlit as st
+import pandas as pd
 from utils.database import Database
 from utils.styling import apply_custom_styling
 import logging
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 apply_custom_styling()
@@ -60,6 +60,10 @@ def search_page():
                 if results:
                     st.success(f"{len(results)}টি ফলাফল পাওয়া গেছে")
 
+                    # Initialize session state for edited data if not exists
+                    if 'edited_data' not in st.session_state:
+                        st.session_state.edited_data = None
+
                     # Convert results to DataFrame
                     df = pd.DataFrame(results)
 
@@ -81,18 +85,21 @@ def search_page():
                             'relationship_status': st.column_config.SelectboxColumn(
                                 'সম্পর্কের ধরণ',
                                 options=['Regular', 'Friend', 'Enemy'],
-                                required=True
+                                required=True,
+                                default='Regular'
                             )
                         },
                         hide_index=True,
                         use_container_width=True,
-                        key="data_editor"
+                        key="search_data_editor",
+                        disabled=False
                     )
 
+                    st.session_state.edited_data = edited_df
+
                     # Update button
-                    if st.button("পরিবর্তনগুলি সংরক্ষণ করুন", type="primary"):
+                    if st.button("পরিবর্তনগুলি সংরক্ষণ করুন", type="primary", key="save_changes"):
                         try:
-                            # Compare and update changed records
                             changes = edited_df.compare(df[[
                                 'ক্রমিক_নং', 'নাম', 'ভোটার_নং', 'পিতার_নাম',
                                 'মাতার_নাম', 'পেশা', 'ঠিকানা', 'জন্ম_তারিখ', 'relationship_status'
@@ -100,8 +107,7 @@ def search_page():
 
                             if not changes.empty:
                                 for idx in changes.index:
-                                    record_id = int(df.iloc[idx]['id'])  # Convert to native Python int
-                                    # Convert DataFrame row to dictionary with proper type conversion
+                                    record_id = int(df.iloc[idx]['id'])
                                     row_data = edited_df.iloc[idx]
                                     updated_data = {
                                         'ক্রমিক_নং': str(row_data['ক্রমিক_নং']) if pd.notnull(row_data['ক্রমিক_নং']) else '',
