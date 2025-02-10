@@ -16,7 +16,7 @@ def display_relationship_card(record):
                      alt="{record['নাম']} এর ছবি">""" if record.get('photo_link') else ""
 
     st.markdown(f"""
-    <div style='background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
+    <div style='background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
         <div style='display: flex; align-items: center; margin-bottom: 1rem;'>
             {photo_html}
             <h3 style='margin: 0;'>{record['নাম']}</h3>
@@ -100,18 +100,16 @@ def relationships_page():
                 st.markdown("""<hr style="margin: 0.5rem 0; border: none; border-top: 1px solid #eee;">""", unsafe_allow_html=True)
 
                 for record in records:
-                    col1, col2 = st.columns([5, 1])
-                    with col1:
-                        display_relationship_card(record)
-                    with col2:
-                        if st.button(
-                            "🔄 Regular এ ফিরিয়ে নিন", 
-                            key=f"remove_{relationship_type}_{record['id']}", 
-                            type="secondary"
-                        ):
-                            db.update_relationship_status(record['id'], 'Regular')
-                            st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
-                            st.rerun()
+                    display_relationship_card(record)
+                    if st.button(
+                        "🔄 Regular এ ফিরিয়ে নিন", 
+                        key=f"remove_{relationship_type}_{record['id']}", 
+                        type="secondary",
+                        use_container_width=True
+                    ):
+                        db.update_relationship_status(record['id'], 'Regular')
+                        st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
+                        st.rerun()
 
                 # Add spacing between files
                 st.markdown("<br>", unsafe_allow_html=True)
