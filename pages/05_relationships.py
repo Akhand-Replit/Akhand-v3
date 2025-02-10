@@ -9,9 +9,18 @@ logger = logging.getLogger(__name__)
 apply_custom_styling()
 
 def display_relationship_card(record):
+    # Create a flex container for name and photo
+    photo_html = f"""<img src="{record.get('photo_link', '')}" 
+                     style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; margin-right: 1rem;"
+                     onerror="this.style.display='none'"
+                     alt="{record['নাম']} এর ছবি">""" if record.get('photo_link') else ""
+
     st.markdown(f"""
     <div style='background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
-        <h3>{record['নাম']}</h3>
+        <div style='display: flex; align-items: center; margin-bottom: 1rem;'>
+            {photo_html}
+            <h3 style='margin: 0;'>{record['নাম']}</h3>
+        </div>
         <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;'>
             <div>
                 <p><strong>ক্রমিক নং:</strong> {record['ক্রমিক_নং']}</p>
@@ -29,10 +38,6 @@ def display_relationship_card(record):
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-    # Display photo if available
-    if record.get('photo_link'):
-        st.image(record['photo_link'], caption=f"{record['নাম']} এর ছবি", width=200)
 
 def relationships_page():
     if 'authenticated' not in st.session_state or not st.session_state.authenticated:
