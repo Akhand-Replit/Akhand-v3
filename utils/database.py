@@ -298,3 +298,43 @@ class Database:
                 WHERE id = %s
             """, (file_id,))
             return cur.fetchone()
+
+    def delete_file(self, batch_id: int, file_name: str):
+        """Delete a file and all its associated records from a batch"""
+        with self.conn.cursor() as cur:
+            try:
+                # Start transaction
+                cur.execute("BEGIN")
+
+                # Delete all records associated with the file
+                cur.execute("""
+                    DELETE FROM records 
+                    WHERE batch_id = %s AND file_name = %s
+                """, (batch_id, file_name))
+
+                # Commit transaction
+                self.conn.commit()
+            except Exception as e:
+                self.conn.rollback()
+                logger.error(f"Error deleting file: {str(e)}")
+                raise e
+
+    def delete_batch(self, batch_id: int):
+        """Delete a batch and all its associated records"""
+        with self.conn.cursor() as cur:
+            try:
+                # Start transaction
+                cur.execute("BEGIN")
+
+                # Delete all records in the batch
+                cur.execute("DELETE FROM records WHERE batch_id = %s", (batch_id,))
+
+                # Delete the batch
+                cur.execute("DELETE FROM batches WHERE id = %s", (batch_id,))
+
+                # Commit transaction
+                self.conn.commit()
+            except Exception as e:
+                self.conn.rollback()
+                logger.error(f"Error deleting batch: {str(e)}")
+                raise e
