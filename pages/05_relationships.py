@@ -30,14 +30,39 @@ def relationships_page():
 
     db = Database()
 
+    # Get all batches
+    batches = db.get_all_batches()
+
+    if not batches:
+        st.info("কোন ডাটা পাওয়া যায়নি")
+        return
+
+    # Batch selection
+    selected_batch = st.selectbox(
+        "ব্যাচ নির্বাচন করুন",
+        options=['সব ব্যাচ'] + [batch['name'] for batch in batches],
+        format_func=lambda x: f"ব্যাচ: {x}"
+    )
+
     # Create tabs for Friend and Enemy lists
     tab1, tab2 = st.tabs(["বন্ধু তালিকা", "শত্রু তালিকা"])
 
     def display_relationship_section(relationship_type):
-        records = db.get_relationship_records(relationship_type)
+        # Get records based on selection
+        if selected_batch == 'সব ব্যাচ':
+            records = db.get_relationship_records(relationship_type)
+        else:
+            # Get batch ID
+            batch_id = next(batch['id'] for batch in batches if batch['name'] == selected_batch)
+            records = [r for r in db.get_relationship_records(relationship_type) 
+                      if r['batch_id'] == batch_id]
+
         if not records:
             st.info(f"কোন {'বন্ধু' if relationship_type == 'Friend' else 'শত্রু'} যোগ করা হয়নি")
             return
+
+        # Show total count
+        st.write(f"মোট: {len(records)}")
 
         # Group records by batch and file
         batch_file_groups = defaultdict(lambda: defaultdict(list))
