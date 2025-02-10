@@ -12,14 +12,27 @@ def display_relationship_card(record):
     st.markdown(f"""
     <div style='background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
         <h3>{record['নাম']}</h3>
-        <p><strong>ক্রমিক নং:</strong> {record['ক্রমিক_নং']}</p>
-        <p><strong>ভোটার নং:</strong> {record['ভোটার_নং']}</p>
-        <p><strong>পিতার নাম:</strong> {record['পিতার_নাম']}</p>
-        <p><strong>মাতার নাম:</strong> {record['মাতার_নাম']}</p>
-        <p><strong>পেশা:</strong> {record['পেশা']}</p>
-        <p><strong>ঠিকানা:</strong> {record['ঠিকানা']}</p>
+        <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;'>
+            <div>
+                <p><strong>ক্রমিক নং:</strong> {record['ক্রমিক_নং']}</p>
+                <p><strong>ভোটার নং:</strong> {record['ভোটার_নং']}</p>
+                <p><strong>পিতার নাম:</strong> {record['পিতার_নাম']}</p>
+                <p><strong>মাতার নাম:</strong> {record['মাতার_নাম']}</p>
+                <p><strong>পেশা:</strong> {record['পেশা']}</p>
+                <p><strong>ঠিকানা:</strong> {record['ঠিকানা']}</p>
+            </div>
+            <div>
+                <p><strong>ফোন নম্বর:</strong> {record.get('phone_number', '')}</p>
+                <p><strong>ফেসবুক:</strong> <a href="{record.get('facebook_link', '#')}" target="_blank">{record.get('facebook_link', '')}</a></p>
+                <p><strong>বিবরণ:</strong> {record.get('description', '')}</p>
+            </div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # Display photo if available
+    if record.get('photo_link'):
+        st.image(record['photo_link'], caption=f"{record['নাম']} এর ছবি", width=200)
 
 def relationships_page():
     if 'authenticated' not in st.session_state or not st.session_state.authenticated:
