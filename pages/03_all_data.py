@@ -112,7 +112,11 @@ def all_data_page():
                     'জন্ম_তারিখ': st.column_config.TextColumn('জন্ম তারিখ'),
                     'phone_number': st.column_config.TextColumn('ফোন নম্বর'),
                     'facebook_link': st.column_config.LinkColumn('ফেসবুক লিঙ্ক'),
-                    'photo_link': st.column_config.ImageColumn('ছবি লিঙ্ক'),
+                    'photo_link': st.column_config.TextColumn(
+                        'ছবি লিঙ্ক',
+                        help="Enter the URL of the image",
+                        validate="^https?://.*$"
+                    ),
                     'description': st.column_config.TextColumn('বিবরণ'),
                     'relationship_status': st.column_config.SelectboxColumn(
                         'সম্পর্কের ধরণ',
