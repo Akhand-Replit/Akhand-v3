@@ -6,7 +6,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Static password
-ADMIN_PASSWORD = "a"
+ADMIN_PASSWORD = "AkhandF123!"
 
 def init_auth():
     """Initialize authentication in session state"""
@@ -20,6 +20,7 @@ def login_form():
 
     st.markdown("""
         <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h1 style="text-align: center; margin-bottom: 2rem;font-family: "Times New Roman">Akhand Data</h1>
             <h2 style="text-align: center; margin-bottom: 2rem;">🔐 প্রবেশ করুন</h2>
         </div>
     """, unsafe_allow_html=True)

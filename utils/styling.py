@@ -26,11 +26,22 @@ def apply_custom_styling():
         }
         
         /* Button styling */
-        .stButton button {
-            width: 100%;
-            border-radius: 0.3rem;
-            font-weight: 500;
-        }
+.stButton button {
+    width: 100%;
+    border-radius: 0.9rem;
+    font-weight: 500;
+    background-color: black;
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.stButton button:hover {
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+}
+
         
         /* Search box styling */
         .stTextInput input {
