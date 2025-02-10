@@ -21,7 +21,7 @@ def relationships_page():
 
     with tab1:
         st.subheader("🤝 বন্ধু তালিকা")
-        friends = db.get_relationships('friend')
+        friends = db.get_relationship_records('Friend')
         if friends:
             for friend in friends:
                 with st.container():
@@ -37,15 +37,16 @@ def relationships_page():
                         <p><strong>ফাইল:</strong> {friend['batch_name']}/{friend['file_name']}</p>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button("অপসারণ করুন", key=f"remove_friend_{friend['id']}", type="secondary"):
-                        db.remove_relationship(friend['id'])
+                    if st.button("🔄 Regular এ ফিরিয়ে নিন", key=f"remove_friend_{friend['id']}", type="secondary"):
+                        db.update_relationship_status(friend['id'], 'Regular')
+                        st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
                         st.rerun()
         else:
             st.info("কোন বন্ধু যোগ করা হয়নি")
 
     with tab2:
         st.subheader("⚔️ শত্রু তালিকা")
-        enemies = db.get_relationships('enemy')
+        enemies = db.get_relationship_records('Enemy')
         if enemies:
             for enemy in enemies:
                 with st.container():
@@ -61,8 +62,9 @@ def relationships_page():
                         <p><strong>ফাইল:</strong> {enemy['batch_name']}/{enemy['file_name']}</p>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button("অপসারণ করুন", key=f"remove_enemy_{enemy['id']}", type="secondary"):
-                        db.remove_relationship(enemy['id'])
+                    if st.button("🔄 Regular এ ফিরিয়ে নিন", key=f"remove_enemy_{enemy['id']}", type="secondary"):
+                        db.update_relationship_status(enemy['id'], 'Regular')
+                        st.success("✅ Regular হিসেবে আপডেট করা হয়েছে!")
                         st.rerun()
         else:
             st.info("কোন শত্রু যোগ করা হয়নি")

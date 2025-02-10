@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
-        # Set client encoding to UTF8 explicitly
         self.conn = psycopg2.connect(
             dbname=os.getenv('PGDATABASE'),
             user=os.getenv('PGUSER'),
@@ -29,7 +28,7 @@ class Database:
                 )
             """)
 
-            # Create records table with explicit encoding
+            # Create records table with relationship_status
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS records (
                     id SERIAL PRIMARY KEY,
@@ -43,28 +42,8 @@ class Database:
                     পেশা TEXT,
                     জন্ম_তারিখ VARCHAR(100),
                     ঠিকানা TEXT,
+                    relationship_status VARCHAR(10) DEFAULT 'Regular',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-
-            # Drop and recreate relationships table with proper structure
-            cur.execute("DROP TABLE IF EXISTS relationships CASCADE")
-            cur.execute("""
-                CREATE TABLE relationships (
-                    id SERIAL PRIMARY KEY,
-                    record_id INTEGER REFERENCES records(id) ON DELETE CASCADE,
-                    ক্রমিক_নং VARCHAR(50),
-                    নাম TEXT,
-                    ভোটার_নং VARCHAR(100),
-                    পিতার_নাম TEXT,
-                    মাতার_নাম TEXT,
-                    পেশা TEXT,
-                    ঠিকানা TEXT,
-                    batch_name VARCHAR(255),
-                    file_name VARCHAR(255),
-                    relationship_type VARCHAR(10) CHECK (relationship_type IN ('friend', 'enemy')),
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    UNIQUE(record_id)
                 )
             """)
             self.conn.commit()
@@ -74,7 +53,6 @@ class Database:
         with self.conn.cursor() as cur:
             cur.execute("TRUNCATE records CASCADE")
             cur.execute("TRUNCATE batches CASCADE")
-            cur.execute("TRUNCATE relationships CASCADE") #added this line
             self.conn.commit()
 
     def get_batch_files(self, batch_id):
@@ -115,14 +93,16 @@ class Database:
             cur.execute("""
                 INSERT INTO records (
                     batch_id, file_name, ক্রমিক_নং, নাম, ভোটার_নং,
-                    পিতার_নাম, মাতার_নাম, পেশা, জন্ম_তারিখ, ঠিকানা
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    পিতার_নাম, মাতার_নাম, পেশা, জন্ম_তারিখ, ঠিকানা,
+                    relationship_status
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 batch_id, file_name,
                 record_data.get('ক্রমিক_নং'), record_data.get('নাম'),
                 record_data.get('ভোটার_নং'), record_data.get('পিতার_নাম'),
                 record_data.get('মাতার_নাম'), record_data.get('পেশা'),
-                record_data.get('জন্ম_তারিখ'), record_data.get('ঠিকানা')
+                record_data.get('জন্ম_তারিখ'), record_data.get('ঠিকানা'),
+                'Regular'
             ))
             self.conn.commit()
 
@@ -138,7 +118,8 @@ class Database:
                     মাতার_নাম = %s,
                     পেশা = %s,
                     ঠিকানা = %s,
-                    জন্ম_তারিখ = %s
+                    জন্ম_তারিখ = %s,
+                    relationship_status = %s
                 WHERE id = %s
             """
             # Ensure all values are strings or None
@@ -151,6 +132,7 @@ class Database:
                 str(updated_data.get('পেশা', '')),
                 str(updated_data.get('ঠিকানা', '')),
                 str(updated_data.get('জন্ম_তারিখ', '')),
+                str(updated_data.get('relationship_status', 'Regular')),
                 record_id
             )
             cur.execute(query, values)
@@ -158,9 +140,7 @@ class Database:
 
 
     def search_records_advanced(self, criteria):
-        """
-        Advanced search with multiple criteria
-        """
+        """Advanced search with multiple criteria"""
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             query = """
                 SELECT r.*, b.name as batch_name
@@ -171,13 +151,15 @@ class Database:
             params = []
 
             for field, value in criteria.items():
-                if value:
+                if value and field != 'relationship_status':
                     query += f" AND {field} ILIKE %s"
                     params.append(f"%{value}%")
+                elif value and field == 'relationship_status':
+                    query += f" AND {field} = %s"
+                    params.append(value)
+
 
             query += " ORDER BY r.created_at DESC"
-
-            logger.info(f"Executing search query: {query}")
             cur.execute(query, params)
             return cur.fetchall()
 
@@ -242,89 +224,32 @@ class Database:
             """)
             return cur.fetchall()
 
-    def add_relationship(self, record_id: int, relationship_type: str):
-        """Add or update a relationship (friend/enemy) for a record"""
-        try:
-            record_id = int(record_id)  # Convert to native Python int
-
-            with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-                # First get the record details
-                cur.execute("""
-                    SELECT r.*, b.name as batch_name 
-                    FROM records r
-                    JOIN batches b ON r.batch_id = b.id
-                    WHERE r.id = %s
-                """, (record_id,))
-
-                record = cur.fetchone()
-                if not record:
-                    raise ValueError(f"Record with ID {record_id} not found")
-
-                # Ensure all text data is properly encoded
-                record_data = {
-                    'ক্রমিক_নং': str(record['ক্রমিক_নং']).encode('utf-8').decode('utf-8'),
-                    'নাম': str(record['নাম']).encode('utf-8').decode('utf-8'),
-                    'ভোটার_নং': str(record['ভোটার_নং']).encode('utf-8').decode('utf-8'),
-                    'পিতার_নাম': str(record['পিতার_নাম']).encode('utf-8').decode('utf-8'),
-                    'মাতার_নাম': str(record['মাতার_নাম']).encode('utf-8').decode('utf-8'),
-                    'পেশা': str(record['পেশা']).encode('utf-8').decode('utf-8'),
-                    'ঠিকানা': str(record['ঠিকানা']).encode('utf-8').decode('utf-8'),
-                }
-
-                # Insert or update relationship with copied data
-                cur.execute("""
-                    INSERT INTO relationships (
-                        record_id, ক্রমিক_নং, নাম, ভোটার_নং, পিতার_নাম,
-                        মাতার_নাম, পেশা, ঠিকানা, batch_name, file_name,
-                        relationship_type
-                    ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-                    )
-                    ON CONFLICT (record_id) 
-                    DO UPDATE SET
-                        ক্রমিক_নং = EXCLUDED.ক্রমিক_নং,
-                        নাম = EXCLUDED.নাম,
-                        ভোটার_নং = EXCLUDED.ভোটার_নং,
-                        পিতার_নাম = EXCLUDED.পিতার_নাম,
-                        মাতার_নাম = EXCLUDED.মাতার_নাম,
-                        পেশা = EXCLUDED.পেশা,
-                        ঠিকানা = EXCLUDED.ঠিকানা,
-                        batch_name = EXCLUDED.batch_name,
-                        file_name = EXCLUDED.file_name,
-                        relationship_type = EXCLUDED.relationship_type,
-                        created_at = CURRENT_TIMESTAMP
-                """, (
-                    record_id,
-                    record_data['ক্রমিক_নং'],
-                    record_data['নাম'],
-                    record_data['ভোটার_নং'],
-                    record_data['পিতার_নাম'],
-                    record_data['মাতার_নাম'],
-                    record_data['পেশা'],
-                    record_data['ঠিকানা'],
-                    record['batch_name'],
-                    record['file_name'],
-                    relationship_type
-                ))
-                self.conn.commit()
-                logger.info(f"Successfully added/updated relationship for record {record_id}")
-        except Exception as e:
-            logger.error(f"Error adding relationship: {str(e)}")
-            self.conn.rollback()
-            raise
-
-    def remove_relationship(self, record_id: int):
-        """Remove a relationship for a record"""
+    def update_relationship_status(self, record_id: int, status: str):
+        """Update relationship status for a record"""
         with self.conn.cursor() as cur:
-            cur.execute("DELETE FROM relationships WHERE record_id = %s", (record_id,))
+            cur.execute("""
+                UPDATE records 
+                SET relationship_status = %s 
+                WHERE id = %s
+            """, (status, record_id))
             self.conn.commit()
 
-    def get_relationships(self, relationship_type: str):
-        """Get all records with a specific relationship type"""
+    def get_relationship_records(self, status: str):
+        """Get all records with a specific relationship status"""
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
-                SELECT * FROM relationships
-                WHERE relationship_type = %s
-                ORDER BY created_at DESC
-            """, (relationship_type,))
+                SELECT r.*, b.name as batch_name
+                FROM records r
+                JOIN batches b ON r.batch_id = b.id
+                WHERE r.relationship_status = %s
+                ORDER BY r.created_at DESC
+            """, (status,))
             return cur.fetchall()
+
+    def remove_relationship(self, record_id: int):
+        """Remove a relationship for a record -- this function is now obsolete"""
+        pass #This function is no longer needed.
+
+    def get_relationships(self, relationship_type: str):
+        """Get all records with a specific relationship type -- This function is now obsolete"""
+        pass #This function is no longer needed.
