@@ -10,44 +10,38 @@ apply_custom_styling()
 
 def display_relationship_card(record):
     """Display a single relationship card with profile image and details"""
-    # Create image HTML only if photo_link exists
-    image_html = f"""
-        <div style='flex-shrink: 0; margin-right: 1rem;'>
-            <img src="{record.get('photo_link')}" 
-                 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;"
-                 alt="Profile">
-        </div>
-    """ if record.get('photo_link') else ""
+    with st.container():
+        # Profile section with image and basic info
+        cols = st.columns([1, 3])
 
-    # Create a card container with proper styling
-    html = f"""
-    <div style='background: white; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
-        <div style='display: flex; align-items: start; margin-bottom: 1rem;'>
-            {image_html}
-            <div style='flex-grow: 1;'>
-                <h3 style='margin: 0; color: #1f2937; margin-bottom: 1rem;'>{record.get('নাম', '')}</h3>
-                <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;'>
-                    <div>
-                        <p style='margin: 0.5rem 0;'><strong>ক্রমিক নং:</strong> {record.get('ক্রমিক_নং', '')}</p>
-                        <p style='margin: 0.5rem 0;'><strong>রেকর্ড নং:</strong> {record.get('ভোটার_নং', '')}</p>
-                        <p style='margin: 0.5rem 0;'><strong>পিতার নাম:</strong> {record.get('পিতার_নাম', '')}</p>
-                        <p style='margin: 0.5rem 0;'><strong>মাতার নাম:</strong> {record.get('মাতার_নাম', '')}</p>
-                        <p style='margin: 0.5rem 0;'><strong>পেশা:</strong> {record.get('পেশা', '')}</p>
-                        <p style='margin: 0.5rem 0;'><strong>ঠিকানা:</strong> {record.get('ঠিকানা', '')}</p>
-                    </div>
-                    <div>
-                        <p style='margin: 0.5rem 0;'><strong>ফোন নম্বর:</strong> {record.get('phone_number', '')}</p>
-                        <p style='margin: 0.5rem 0;'><strong>ফেসবুক:</strong> {record.get('facebook_link') and f'<a href="{record["facebook_link"]}" target="_blank">{record["facebook_link"]}</a>' or ''}</p>
-                        <p style='margin: 0.5rem 0;'><strong>বিবরণ:</strong> {record.get('description', '')}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    """
+        with cols[0]:
+            # Profile image
+            if record.get('photo_link'):
+                st.image(record['photo_link'], width=100)
 
-    # Render the HTML using Streamlit's markdown
-    st.markdown(html, unsafe_allow_html=True)
+        with cols[1]:
+            st.markdown(f"### {record.get('নাম', '')}")
+
+        # Main information grid
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown(f"""
+            **ক্রমিক নং:** {record.get('ক্রমিক_নং', '')}\n
+            **রেকর্ড নং:** {record.get('ভোটার_নং', '')}\n
+            **পিতার নাম:** {record.get('পিতার_নাম', '')}\n
+            **মাতার নাম:** {record.get('মাতার_নাম', '')}\n
+            **পেশা:** {record.get('পেশা', '')}\n
+            **ঠিকানা:** {record.get('ঠিকানা', '')}
+            """)
+
+        with col2:
+            st.markdown(f"""
+            **ফোন নাম্বার:** {record.get('phone_number', '')}\n
+            **ফেসবুক:**""")
+            if record.get('facebook_link'):
+                st.markdown(f"[{record.get('facebook_link', '')}]({record.get('facebook_link', '')})")
+            st.markdown("**বিবরণ:**")
 
     # Add action button below the card
     if st.button(
