@@ -27,6 +27,10 @@ def all_data_page():
     # Initialize session state for delete confirmation
     if 'confirm_delete_all' not in st.session_state:
         st.session_state.confirm_delete_all = False
+    if 'confirm_delete_batch' not in st.session_state:
+        st.session_state.confirm_delete_batch = None
+    if 'confirm_delete_file' not in st.session_state:
+        st.session_state.confirm_delete_file = None
 
     # Clear all data button with confirmation dialog
     col1, col2 = st.columns([5, 1])
@@ -34,7 +38,7 @@ def all_data_page():
         if st.button("সব ডাটা মুছুন", type="secondary"):
             st.session_state.confirm_delete_all = True
 
-    # Show confirmation dialog
+    # Show confirmation dialog for all data deletion
     if st.session_state.confirm_delete_all:
         st.warning("""
         ⚠️ সতর্কতা!
@@ -61,11 +65,42 @@ def all_data_page():
 
     # Batch selection
     with col1:
-        selected_batch = st.selectbox(
-            "ব্যাচ নির্বাচন করুন",
-            options=[batch['name'] for batch in batches],
-            format_func=lambda x: f"ব্যাচ: {x}"
-        )
+        batch_col1, batch_col2 = st.columns([4, 1])
+        with batch_col1:
+            selected_batch = st.selectbox(
+                "ব্যাচ নির্বাচন করুন",
+                options=[batch['name'] for batch in batches],
+                format_func=lambda x: f"ব্যাচ: {x}"
+            )
+        with batch_col2:
+            if st.button("🗑️ ব্যাচ মুছুন", key="delete_batch"):
+                st.session_state.confirm_delete_batch = selected_batch
+
+    # Show confirmation for batch deletion
+    if st.session_state.confirm_delete_batch:
+        st.warning(f"""
+        ⚠️ সতর্কতা!
+        আপনি কি নিশ্চিত যে আপনি '{st.session_state.confirm_delete_batch}' ব্যাচ মুছে ফেলতে চান?
+        এর সাথে সম্পর্কিত সমস্ত ফাইল এবং রেকর্ড মুছে যাবে।
+        """)
+
+        batch_confirm_col1, batch_confirm_col2 = st.columns(2)
+        with batch_confirm_col1:
+            if st.button("হ্যাঁ, ব্যাচ মুছুন", type="primary", use_container_width=True):
+                try:
+                    batch_id = next(batch['id'] for batch in batches if batch['name'] == st.session_state.confirm_delete_batch)
+                    db.delete_batch(batch_id)
+                    st.success(f"✅ ব্যাচ '{st.session_state.confirm_delete_batch}' সফলভাবে মুছে ফেলা হয়েছে")
+                    st.session_state.confirm_delete_batch = None
+                    st.rerun()
+                except Exception as e:
+                    logger.error(f"Delete batch error: {str(e)}")
+                    st.error(f"❌ ব্যাচ মুছে ফেলার সময় সমস্যা হয়েছে: {str(e)}")
+
+        with batch_confirm_col2:
+            if st.button("না, বাতিল করুন", type="secondary", use_container_width=True):
+                st.session_state.confirm_delete_batch = None
+                st.rerun()
 
     # Get selected batch details
     selected_batch_id = next(batch['id'] for batch in batches if batch['name'] == selected_batch)
@@ -74,11 +109,41 @@ def all_data_page():
     files = db.get_batch_files(selected_batch_id)
 
     if files:
-        selected_file = st.selectbox(
-            "ফাইল নির্বাচন করুন",
-            options=['সব'] + [file['file_name'] for file in files],
-            format_func=lambda x: f"ফাইল: {x}" if x != 'সব' else "সব ফাইল দেখুন"
-        )
+        file_col1, file_col2 = st.columns([4, 1])
+        with file_col1:
+            selected_file = st.selectbox(
+                "ফাইল নির্বাচন করুন",
+                options=['সব'] + [file['file_name'] for file in files],
+                format_func=lambda x: f"ফাইল: {x}" if x != 'সব' else "সব ফাইল দেখুন"
+            )
+        with file_col2:
+            if selected_file != 'সব' and st.button("🗑️ ফাইল মুছুন"):
+                st.session_state.confirm_delete_file = selected_file
+
+        # Show confirmation for file deletion
+        if st.session_state.confirm_delete_file:
+            st.warning(f"""
+            ⚠️ সতর্কতা!
+            আপনি কি নিশ্চিত যে আপনি '{st.session_state.confirm_delete_file}' ফাইল মুছে ফেলতে চান?
+            এর সাথে সম্পর্কিত সমস্ত রেকর্ড মুছে যাবে।
+            """)
+
+            file_confirm_col1, file_confirm_col2 = st.columns(2)
+            with file_confirm_col1:
+                if st.button("হ্যাঁ, ফাইল মুছুন", type="primary", use_container_width=True):
+                    try:
+                        db.delete_file(selected_batch_id, st.session_state.confirm_delete_file)
+                        st.success(f"✅ ফাইল '{st.session_state.confirm_delete_file}' সফলভাবে মুছে ফেলা হয়েছে")
+                        st.session_state.confirm_delete_file = None
+                        st.rerun()
+                    except Exception as e:
+                        logger.error(f"Delete file error: {str(e)}")
+                        st.error(f"❌ ফাইল মুছে ফেলার সময় সমস্যা হয়েছে: {str(e)}")
+
+            with file_confirm_col2:
+                if st.button("না, বাতিল করুন", type="secondary", use_container_width=True):
+                    st.session_state.confirm_delete_file = None
+                    st.rerun()
 
         # Get records based on selection
         if selected_file == 'সব':
