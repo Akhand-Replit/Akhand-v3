@@ -10,7 +10,6 @@ apply_custom_styling()
 def display_result_card(result, db):
     # Get batch and file information
     batch_info = db.get_batch_by_id(result['batch_id'])
-    file_info = db.get_file_by_id(result['file_id']) if result['file_id'] else None
 
     with st.container():
         st.markdown("""
@@ -35,9 +34,9 @@ def display_result_card(result, db):
             with col2:
                 st.markdown(f"**ক্রমিক নং:** {result['ক্রমিক_নং']}")
 
-            # Location info
+            # Location info with batch name and file name
             st.markdown(f"📍 **Location:** {batch_info['name']}" + 
-                       (f" / {file_info['file_name']}" if file_info else ""))
+                       (f" / {result['file_name']}" if result.get('file_name') else ""))
 
             # Main details
             col3, col4 = st.columns(2)

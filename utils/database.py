@@ -253,3 +253,19 @@ class Database:
     def get_relationships(self, relationship_type: str):
         """Get all records with a specific relationship type -- This function is now obsolete"""
         pass #This function is no longer needed.
+
+    def get_batch_by_id(self, batch_id):
+        """Get batch information by ID"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT * FROM batches WHERE id = %s", (batch_id,))
+            return cur.fetchone()
+
+    def get_file_by_id(self, file_id):
+        """Get file information by file ID"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT DISTINCT file_name, batch_id
+                FROM records
+                WHERE id = %s
+            """, (file_id,))
+            return cur.fetchone()
