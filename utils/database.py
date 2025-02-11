@@ -8,11 +8,11 @@ logger = logging.getLogger(__name__)
 class Database:
     def __init__(self):
         self.conn = psycopg2.connect(
-            dbname=os.getenv('PGDATABASE'),
-            user=os.getenv('PGUSER'),
-            password=os.getenv('PGPASSWORD'),
-            host=os.getenv('PGHOST'),
-            port=os.getenv('PGPORT'),
+            dbname='postgres',
+            user='runner',
+            password='',
+            host='localhost',
+            port=5432,
             options="-c client_encoding=utf8"
         )
         self.create_tables()
