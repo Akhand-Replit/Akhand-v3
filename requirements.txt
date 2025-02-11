@@ -7,3 +7,10 @@ streamlit>=1.42.0
 trafilatura>=2.0.0
 twilio>=9.4.4
 twilio
+pandas
+psycopg2-binary
+streamlit
+pandas
+plotly
+psycopg2-binary
+streamlit
