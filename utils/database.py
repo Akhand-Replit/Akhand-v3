@@ -9,23 +9,17 @@ class Database:
     def __init__(self):
         try:
             self.conn = psycopg2.connect(
-                dbname='postgres',
-                user='runner',
-                password='',
-                host='127.0.0.1',
+                dbname='neondb',
+                user='neondb_owner',
+                password='npg_tGOCrM7xUd9q',
+                host='ep-fragrant-silence-a4vurrxi.us-east-1.aws.neon.tech',
                 port=5432,
-                options="-c client_encoding=utf8"
+                sslmode='require'
             )
             self.create_tables()
         except psycopg2.OperationalError:
             # If connection fails, try to create the database
-            conn = psycopg2.connect(
-                dbname='template1',
-                user='runner',
-                password='',
-                host='127.0.0.1',
-                port=5432
-            )
+            raise Exception("Failed to connect to database. Please check your credentials.")
             conn.autocommit = True
             with conn.cursor() as cur:
                 cur.execute("CREATE DATABASE postgres")
