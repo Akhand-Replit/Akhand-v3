@@ -283,6 +283,12 @@ class Database:
         """Get all records with a specific relationship type -- This function is now obsolete"""
         pass #This function is no longer needed.
 
+    def get_batch_by_name(self, batch_name):
+        """Get batch information by name"""
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT * FROM batches WHERE name = %s", (batch_name,))
+            return cur.fetchone()
+
     def get_batch_by_id(self, batch_id):
         """Get batch information by ID"""
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
