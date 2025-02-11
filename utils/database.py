@@ -37,22 +37,6 @@ class Database:
 
     def create_tables(self):
         with self.conn.cursor() as cur:
-            # Add new columns to records table
-            cur.execute("""
-                DO $$ 
-                BEGIN 
-                    BEGIN
-                        ALTER TABLE records 
-                        ADD COLUMN phone_number VARCHAR(50),
-                        ADD COLUMN facebook_link TEXT,
-                        ADD COLUMN photo_link TEXT,
-                        ADD COLUMN description TEXT;
-                    EXCEPTION 
-                        WHEN duplicate_column THEN NULL;
-                    END;
-                END $$;
-            """)
-
             # Create tables if they don't exist
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS batches (
@@ -83,6 +67,7 @@ class Database:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            self.conn.commit()
             self.conn.commit()
 
     def clear_all_data(self):
