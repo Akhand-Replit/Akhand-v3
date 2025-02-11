@@ -7,15 +7,39 @@ logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
-        self.conn = psycopg2.connect(
-            dbname='postgres',
-            user='runner',
-            password='',
-            host='localhost',
-            port=5432,
-            options="-c client_encoding=utf8"
-        )
-        self.create_tables()
+        try:
+            self.conn = psycopg2.connect(
+                dbname='postgres',
+                user='runner',
+                password='',
+                host='127.0.0.1',
+                port=5432,
+                options="-c client_encoding=utf8"
+            )
+            self.create_tables()
+        except psycopg2.OperationalError:
+            # If connection fails, try to create the database
+            conn = psycopg2.connect(
+                dbname='template1',
+                user='runner',
+                password='',
+                host='127.0.0.1',
+                port=5432
+            )
+            conn.autocommit = True
+            with conn.cursor() as cur:
+                cur.execute("CREATE DATABASE postgres")
+            conn.close()
+            # Try connecting again
+            self.conn = psycopg2.connect(
+                dbname='postgres',
+                user='runner',
+                password='',
+                host='127.0.0.1',
+                port=5432,
+                options="-c client_encoding=utf8"
+            )
+            self.create_tables()
 
     def create_tables(self):
         with self.conn.cursor() as cur:
