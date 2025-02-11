@@ -31,8 +31,15 @@ def upload_page():
         if st.button("আপলোড করুন", type="primary"):
             try:
                 with st.spinner("প্রক্রিয়াকরণ চলছে..."):
-                    # Create batch
-                    batch_id = db.add_batch(batch_name)
+                    # Check if batch already exists
+                    existing_batch = db.get_batch_by_name(batch_name)
+                    if existing_batch:
+                        batch_id = existing_batch['id']
+                        st.info(f"'{batch_name}' ব্যাচে ফাইল যোগ করা হচ্ছে...")
+                    else:
+                        # Create new batch
+                        batch_id = db.add_batch(batch_name)
+                        st.success(f"নতুন ব্যাচ '{batch_name}' তৈরি করা হয়েছে")
 
                     total_records = 0
                     for uploaded_file in uploaded_files:
