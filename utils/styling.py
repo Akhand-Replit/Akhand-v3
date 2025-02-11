@@ -6,7 +6,12 @@ def apply_custom_styling():
         @import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap');
         
         /* Global font settings */
-        * {
+        :lang(bn), .stMarkdown, .stText, h1, h2, h3, p, span, button, .stButton button, .stTextInput input, .stSelectbox select {
+            font-family: 'Tiro Bangla', sans-serif !important;
+        }
+        
+        /* Ensure Bengali text uses Tiro Bangla */
+        *:not(code):not(pre) {
             font-family: 'Tiro Bangla', sans-serif;
         }
         
